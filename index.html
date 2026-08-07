@@ -100,12 +100,13 @@
                         <i data-lucide="radio" class="w-6 h-6 text-slate-500"></i>
                         <h2 class="text-xl font-bold text-white tracking-wide">Lobbies</h2>
                     </div>
-                    <span id="connection-status" class="text-xs text-red-400 flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-red-500"></span> Offline
+                    <span id="connection-status" class="text-xs flex items-center gap-2">
+                        <span id="connection-dot" class="w-2 h-2 rounded-full bg-red-500"></span>
+                        <span id="connection-text" class="text-red-400">Offline</span>
                     </span>
                 </div>
 
-                <!-- Existing Unable to connect card (shown when API is offline) -->
+                <!-- Existing Unable to connect card (shown when Lobbies API is offline) -->
                 <div id="unable-to-connect" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
                     <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-full text-red-400">
                         <i data-lucide="wifi-off" class="w-8 h-8"></i>
@@ -191,9 +192,9 @@
         }
     </script>
 
-    <!-- Real API connection logic: enforces NO fake/demo behavior. -->
+    <!-- Real API connection logic: services are independent -->
     <script>
-    // Configuration (keep placeholders until you set real endpoints)
+    // Configuration (fill with real endpoints)
     const CONFIG = {
         API_BASE_URL: "YOUR_REAL_BACKEND_URL_HERE",
         AUTH_URL: "YOUR_REAL_AUTH_ENDPOINT_HERE",
@@ -202,14 +203,22 @@
         JOIN_LOBBY_URL: "YOUR_REAL_JOIN_ENDPOINT_HERE"
     };
 
+    // Connection state for each service
+    const connectionState = {
+        lobbies: 'unconfigured',
+        leaderboard: 'unconfigured',
+        auth: 'unconfigured',
+        joinLobby: 'unconfigured'
+    };
+
     const SELECTORS = {
-        connectionStatus: '#connection-status',
+        connectionDot: '#connection-dot',
+        connectionText: '#connection-text',
         unableToConnectCard: '#unable-to-connect',
         lobbiesContainer: '#lobbies-container',
         leaderboardContainer: '#leaderboard-container',
         tryAgainButton: '#retry-btn',
-        loginButton: '#login-epic',
-        loginUnavailableCard: '#modal' // reuse modal for login unavailable message
+        loginButton: '#login-epic'
     };
 
     function containsPlaceholder(value) {
@@ -226,18 +235,16 @@
         return false;
     }
 
-    function isApiConfigured() {
-        const keys = ['API_BASE_URL','AUTH_URL','LOBBIES_URL','LEADERBOARD_URL','JOIN_LOBBY_URL'];
-        for (const k of keys) {
-            if (containsPlaceholder(CONFIG[k])) return false;
-        }
-        return true;
-    }
-
     function isUrlLikelyValid(u) {
         try { new URL(u); return true; } catch (e) { return false; }
     }
 
+    function isLobbiesConfigured() { return !containsPlaceholder(CONFIG.LOBBIES_URL) && isUrlLikelyValid(CONFIG.LOBBIES_URL); }
+    function isLeaderboardConfigured() { return !containsPlaceholder(CONFIG.LEADERBOARD_URL) && isUrlLikelyValid(CONFIG.LEADERBOARD_URL); }
+    function isAuthConfigured() { return !containsPlaceholder(CONFIG.AUTH_URL) && isUrlLikelyValid(CONFIG.AUTH_URL); }
+    function isJoinLobbyConfigured() { return !containsPlaceholder(CONFIG.JOIN_LOBBY_URL) && isUrlLikelyValid(CONFIG.JOIN_LOBBY_URL); }
+
+    // fetch with timeout
     async function fetchWithTimeout(resource, options = {}, timeoutMs = 8000) {
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), timeoutMs);
@@ -255,48 +262,50 @@
         return res.json();
     }
 
-    function validateLobbiesResponse(data) {
-        if (!data) return false;
-        if (Array.isArray(data)) return true;
-        if (typeof data === 'object' && Array.isArray(data.lobbies)) return true;
-        return false;
-    }
-
-    function validateLeaderboardResponse(data) {
-        if (!data) return false;
-        if (Array.isArray(data)) return true;
-        if (typeof data === 'object' && Array.isArray(data.players)) return true;
-        return false;
-    }
-
     function el(selector) { return document.querySelector(selector); }
 
-    function showConnectingUI() {
-        const status = el(SELECTORS.connectionStatus);
-        if (status) status.textContent = 'Connecting...';
-        const card = el(SELECTORS.unableToConnectCard);
-        if (card) card.style.display = 'none';
+    // Update Lobbies status indicator (dot color + text)
+    function updateLobbiesIndicator(state) {
+        connectionState.lobbies = state;
+        const dot = el(SELECTORS.connectionDot);
+        const text = el(SELECTORS.connectionText);
+        if (!dot || !text) return;
+        // Reset classes
+        dot.className = 'w-2 h-2 rounded-full';
+        text.className = 'text-xs';
+        if (state === 'connecting') {
+            dot.classList.add('bg-amber-400');
+            text.classList.add('text-amber-300');
+            text.textContent = 'Connecting...';
+        } else if (state === 'online') {
+            dot.classList.add('bg-emerald-500');
+            text.classList.add('text-emerald-400');
+            text.textContent = 'Online';
+        } else if (state === 'offline') {
+            dot.classList.add('bg-red-500');
+            text.classList.add('text-red-400');
+            text.textContent = 'Offline';
+        } else if (state === 'unconfigured') {
+            dot.classList.add('bg-slate-500');
+            text.classList.add('text-slate-400');
+            text.textContent = 'Unconfigured';
+        }
     }
 
-    function showConnectedUI() {
-        const status = el(SELECTORS.connectionStatus);
-        if (status) status.textContent = 'Online';
-        const card = el(SELECTORS.unableToConnectCard);
-        if (card) card.style.display = 'none';
-    }
-
-    function showOfflineUI() {
-        const status = el(SELECTORS.connectionStatus);
-        if (status) status.textContent = 'Offline';
+    // Lobbies UI
+    function showLobbiesOfflineUI() {
+        updateLobbiesIndicator('offline');
         const card = el(SELECTORS.unableToConnectCard);
         if (card) card.style.display = '';
-        const lobbies = el(SELECTORS.lobbiesContainer);
-        if (lobbies) { lobbies.innerHTML = ''; lobbies.style.display = 'none'; }
-        const lb = el(SELECTORS.leaderboardContainer);
-        if (lb) {
-            lb.innerHTML = '<div class="leaderboard-unavailable">Leaderboard data is currently unavailable.</div>';
-            lb.style.display = '';
-        }
+        const container = el(SELECTORS.lobbiesContainer);
+        if (container) { container.innerHTML = ''; container.style.display = 'none'; }
+    }
+
+    function showLobbiesOnlineUI(data) {
+        updateLobbiesIndicator('online');
+        const card = el(SELECTORS.unableToConnectCard);
+        if (card) card.style.display = 'none';
+        renderLobbies(data);
     }
 
     function renderLobbies(data) {
@@ -325,10 +334,19 @@
         }
     }
 
-    function renderLeaderboard(data) {
+    // Leaderboard UI
+    function showLeaderboardUnavailable() {
+        connectionState.leaderboard = 'offline';
         const container = el(SELECTORS.leaderboardContainer);
         if (!container) return;
-        container.style.display = '';
+        container.innerHTML = '';
+        container.innerHTML = `<div class="p-3 bg-red-500/10 border border-red-500/20 rounded-full text-red-400"><i data-lucide="alert-circle" class="w-6 h-6"></i></div><div class="space-y-1"><h3 class="text-base font-bold text-white">Unable to connect</h3><p class="text-slate-400 text-xs">Leaderboard data is currently unavailable.</p></div>`;
+    }
+
+    function renderLeaderboard(data) {
+        connectionState.leaderboard = 'online';
+        const container = el(SELECTORS.leaderboardContainer);
+        if (!container) return;
         container.innerHTML = '';
         let players = [];
         if (Array.isArray(data)) players = data;
@@ -344,60 +362,74 @@
         container.appendChild(list);
     }
 
-    function showLoginUnavailable() {
-        showErrorModal('Login Service Unavailable', 'Epic Games authentication is not configured.');
+    // Validators
+    function validateLobbiesResponse(data) {
+        if (!data) return false;
+        if (Array.isArray(data)) return true;
+        if (typeof data === 'object' && Array.isArray(data.lobbies)) return true;
+        return false;
     }
 
-    async function probeApi() {
-        if (!isApiConfigured()) { console.info('API not configured'); showOfflineUI(); return false; }
-        showConnectingUI();
-        const lobbiesUrl = CONFIG.LOBBIES_URL;
-        if (!isUrlLikelyValid(lobbiesUrl)) { showOfflineUI(); return false; }
+    function validateLeaderboardResponse(data) {
+        if (!data) return false;
+        if (Array.isArray(data)) return true;
+        if (typeof data === 'object' && Array.isArray(data.players)) return true;
+        return false;
+    }
+
+    // Probes (independent)
+    async function probeLobbies() {
+        if (!isLobbiesConfigured()) {
+            updateLobbiesIndicator('unconfigured');
+            showLobbiesOfflineUI();
+            return false;
+        }
+        updateLobbiesIndicator('connecting');
         try {
-            const res = await fetchWithTimeout(lobbiesUrl, { method: 'GET', headers: { 'Accept': 'application/json' } }, 8000);
-            if (!res.ok) { console.warn('Probe failed HTTP', res.status); showOfflineUI(); return false; }
+            const res = await fetchWithTimeout(CONFIG.LOBBIES_URL, { method: 'GET', headers: { 'Accept': 'application/json' } }, 8000);
+            if (!res.ok) { console.warn('Lobbies probe HTTP', res.status); showLobbiesOfflineUI(); return false; }
             let data;
-            try { data = await safeJson(res); } catch (err) { console.warn('Probe JSON parse', err); showOfflineUI(); return false; }
-            if (!validateLobbiesResponse(data)) { console.warn('Probe invalid shape', data); showOfflineUI(); return false; }
-            showConnectedUI();
-            renderLobbies(data);
+            try { data = await safeJson(res); } catch (err) { console.warn('Lobbies probe JSON', err); showLobbiesOfflineUI(); return false; }
+            if (!validateLobbiesResponse(data)) { console.warn('Lobbies probe shape', data); showLobbiesOfflineUI(); return false; }
+            showLobbiesOnlineUI(data);
             return true;
         } catch (err) {
-            console.warn('Probe error', err);
-            showOfflineUI();
+            console.warn('Lobbies probe error', err);
+            showLobbiesOfflineUI();
             return false;
         }
     }
 
-    async function getLobbies() {
-        if (!isApiConfigured()) { showOfflineUI(); return; }
-        showConnectingUI();
-        try {
-            const res = await fetchWithTimeout(CONFIG.LOBBIES_URL, { method: 'GET', headers: { 'Accept': 'application/json' } }, 8000);
-            if (!res.ok) { console.warn('getLobbies HTTP', res.status); showOfflineUI(); return; }
-            const data = await safeJson(res);
-            if (!validateLobbiesResponse(data)) { console.warn('getLobbies invalid shape', data); showOfflineUI(); return; }
-            showConnectedUI();
-            renderLobbies(data);
-        } catch (err) { console.warn('getLobbies error', err); showOfflineUI(); }
-    }
-
-    async function getLeaderboard() {
-        if (!isApiConfigured()) { showOfflineUI(); return; }
-        showConnectingUI();
+    async function probeLeaderboard() {
+        if (!isLeaderboardConfigured()) { connectionState.leaderboard = 'unconfigured'; showLeaderboardUnavailable(); return false; }
+        // Do not change lobbies state here
         try {
             const res = await fetchWithTimeout(CONFIG.LEADERBOARD_URL, { method: 'GET', headers: { 'Accept': 'application/json' } }, 8000);
-            if (!res.ok) { console.warn('getLeaderboard HTTP', res.status); showOfflineUI(); return; }
+            if (!res.ok) { console.warn('Leaderboard HTTP', res.status); showLeaderboardUnavailable(); return false; }
             const data = await safeJson(res);
-            if (!validateLeaderboardResponse(data)) { console.warn('getLeaderboard invalid', data); showOfflineUI(); return; }
-            showConnectedUI();
+            if (!validateLeaderboardResponse(data)) { console.warn('Leaderboard shape', data); showLeaderboardUnavailable(); return false; }
             renderLeaderboard(data);
-        } catch (err) { console.warn('getLeaderboard error', err); showOfflineUI(); }
+            return true;
+        } catch (err) {
+            console.warn('Leaderboard error', err);
+            showLeaderboardUnavailable();
+            return false;
+        }
     }
 
+    // Login handling
     function handleLogin() {
-        if (containsPlaceholder(CONFIG.AUTH_URL) || !isUrlLikelyValid(CONFIG.AUTH_URL)) { showLoginUnavailable(); return; }
+        if (!isAuthConfigured()) { showErrorModal('Login Service Unavailable', 'Epic Games authentication is not configured.'); return; }
+        // Redirect to real auth endpoint
         window.location.href = CONFIG.AUTH_URL;
+    }
+
+    // Join lobby handling helper (example usage)
+    function joinLobby(lobbyId) {
+        if (!isJoinLobbyConfigured()) { showErrorModal('Joining unavailable', 'Lobby joining is not configured.'); return; }
+        // Real join logic: POST to CONFIG.JOIN_LOBBY_URL
+        // This function is a helper — no fake success. Caller must handle response and errors.
+        return fetchWithTimeout(CONFIG.JOIN_LOBBY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lobbyId }) }, 8000);
     }
 
     function wireUiHandlers() {
@@ -405,22 +437,31 @@
         if (tryBtn) {
             tryBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                showConnectingUI();
-                await probeApi();
+                updateLobbiesIndicator('connecting');
+                await probeLobbies();
             });
         }
         const loginBtn = el(SELECTORS.loginButton);
         if (loginBtn) { loginBtn.addEventListener('click', (e) => { e.preventDefault(); handleLogin(); }); }
     }
 
-    async function initConnection() {
+    async function initServices() {
         wireUiHandlers();
-        await probeApi();
+        // initialize indicators based on config immediately
+        updateLobbiesIndicator(isLobbiesConfigured() ? 'connecting' : 'unconfigured');
+        connectionState.leaderboard = isLeaderboardConfigured() ? 'connecting' : 'unconfigured';
+        connectionState.auth = isAuthConfigured() ? 'unconfigured' : 'unconfigured'; // keep 'unconfigured' until login attempted
+        connectionState.joinLobby = isJoinLobbyConfigured() ? 'unconfigured' : 'unconfigured';
+
+        // Launch probes independently, do not await one before starting the other
+        probeLobbies();
+        probeLeaderboard();
     }
 
-    window.AppApiConnection = { initConnection, getLobbies, getLeaderboard, probeApi, CONFIG };
+    // Expose for debugging / manual use
+    window.AppApiConnection = { probeLobbies, probeLeaderboard, joinLobby, CONFIG, connectionState };
 
-    document.addEventListener('DOMContentLoaded', () => { if (window && window.AppApiConnection) { window.AppApiConnection.initConnection(); } });
+    document.addEventListener('DOMContentLoaded', () => { if (window && window.AppApiConnection) { initServices(); } });
 
     </script>
 </body>
