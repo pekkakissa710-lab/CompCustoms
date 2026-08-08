@@ -155,7 +155,7 @@
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
                 <p>&copy; 2026 CompCustoms. All rights reserved. Not affiliated with Epic Games.</p>
                 <div class="flex items-center space-x-6">
-                    <button onclick="openModal('privacy')" class="hover:text-slate-300 transition-colors">Privacy Policy</button>
+                    <a href="https://compcustoms.my.to/privacy" class="hover:text-slate-300 transition-colors">Privacy Policy</a>
                     <button onclick="openModal('terms')" class="hover:text-slate-300 transition-colors">Terms of Service</button>
                     <button onclick="openModal('support')" class="hover:text-slate-300 transition-colors">Support</button>
                 </div>
@@ -173,9 +173,7 @@
         }
 
         function openModal(type) {
-            if (type === 'privacy') {
-                showErrorModal('Privacy Policy', 'CompCustoms respects your privacy. We only collect essential information required for Epic Games authentication.');
-            } else if (type === 'terms') {
+            if (type === 'terms') {
                 showErrorModal('Terms of Service', 'By using CompCustoms, you agree to comply with all game rules and community guidelines.');
             } else if (type === 'support') {
                 showErrorModal('Support Disabled', '<span class="text-red-400 font-bold block text-center py-2">SUPPORT IS DISABLED</span>');
@@ -437,7 +435,6 @@
                 setRetryLoading(true);
                 updateLobbiesIndicator('connecting');
                 
-                // Lisätty pieni vive, jotta pyörimis-animaatio näkyy sujuvasti
                 await Promise.all([
                     probeLobbies(),
                     new Promise(resolve => setTimeout(resolve, 800))
@@ -467,3 +464,4 @@
     </script>
 </body>
 </html>
+
