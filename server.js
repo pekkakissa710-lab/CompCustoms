@@ -71,10 +71,50 @@ app.delete('/api/tournaments/:id', (req, res) => {
     res.json({ success: true, message: 'Matsi poistettu!' });
 });
 
-// Epic Auth Login
+// 1. Epic Auth Login Redirect
 app.get('/api/auth/login', (req, res) => {
-    const authUrl = `https://www.epicgames.com/id/authorize?client_id=${process.env.EPIC_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.EPIC_REDIRECT_URI)}`;
+    const authUrl = `https://www.epicgames.com/id/authorize?client_id=${process.env.EPIC_CLIENT_ID}&response_type=code&scope=basic_profile&redirect_uri=${encodeURIComponent(process.env.EPIC_REDIRECT_URI)}`;
     res.redirect(authUrl);
+});
+
+// 2. Epic Auth Callback - Vaihdetaan koodi käyttäjänimeen
+app.post('/api/auth/callback', async (req, res) => {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: 'Koodi puuttuu' });
+
+    try {
+        // Haetaan access token Epiciltä
+        const tokenParams = new URLSearchParams({
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: process.env.EPIC_REDIRECT_URI,
+            client_id: process.env.EPIC_CLIENT_ID,
+            client_secret: process.env.EPIC_CLIENT_SECRET
+        });
+
+        const tokenRes = await fetch('https://api.epicgames.dev/epic/oauth/v1/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: tokenParams
+        });
+
+        const tokenData = await tokenRes.json();
+        if (!tokenData.access_token) {
+            return res.status(400).json({ error: 'Tokenin haku epäonnistui' });
+        }
+
+        // Haetaan käyttäjän profiilitiedot (oikea käyttäjänimi)
+        const userRes = await fetch('https://api.epicgames.dev/epic/oauth/v1/userInfo', {
+            headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+        });
+
+        const userData = await userRes.json();
+        const username = userData.preferred_username || userData.displayName || 'Epic User';
+
+        res.json({ success: true, username: username });
+    } catch (err) {
+        res.status(500).json({ error: 'Virhe Epic-todennuksessa' });
+    }
 });
 
 const PORT = process.env.PORT || 10000;
