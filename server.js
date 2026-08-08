@@ -13,19 +13,52 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // ==========================================
 // 1. LOBBIES / TOURNAMENTS API
 // ==========================================
-const mockLobbies = [];
+let lobbies = [];
 
 app.get('/api/tournaments', (req, res) => {
-    res.json(mockLobbies);
+    res.json(lobbies);
+});
+
+app.post('/api/tournaments', (req, res) => {
+    const { secret, name, customCode, startTime, teamSize, mode, submode, description } = req.body;
+    
+    if (secret !== process.env.EPIC_CLIENT_SECRET) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const newMatch = {
+        id: Date.now().toString(),
+        name,
+        customCode,
+        startTime,
+        teamSize,
+        mode,
+        submode,
+        description
+    };
+
+    lobbies.push(newMatch);
+    res.json({ success: true, match: newMatch });
+});
+
+app.delete('/api/tournaments/:id', (req, res) => {
+    const { secret } = req.body;
+    const { id } = req.params;
+
+    if (secret !== process.env.EPIC_CLIENT_SECRET) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    lobbies = lobbies.filter(m => m.id !== id);
+    res.json({ success: true });
 });
 
 // ==========================================
-// 2. ADMIN LOGIN API (Tämä puuttui aiemmin!)
+// 2. ADMIN LOGIN API
 // ==========================================
 app.post('/api/admin/login', (req, res) => {
     const { secret } = req.body;
     
-    // Tarkistetaan, että salasana täsmää Renderin EPIC_CLIENT_SECRET -muuttujaan
     if (secret && secret === process.env.EPIC_CLIENT_SECRET) {
         res.json({ success: true });
     } else {
@@ -40,13 +73,11 @@ const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID || "your_epic_client_id";
 const EPIC_CLIENT_SECRET = process.env.EPIC_CLIENT_SECRET || "your_epic_client_secret";
 const REDIRECT_URI = process.env.REDIRECT_URI || "https://compcustoms.my.to";
 
-// Ohjaus Epic Gamesin kirjautumissivulle
 app.get('/api/auth/login', (req, res) => {
     const epicAuthUrl = `https://www.epicgames.com/id/authorize?client_id=${EPIC_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=basic_profile`;
     res.redirect(epicAuthUrl);
 });
 
-// Callback kun käyttäjä palaa Epic Games -kirjautumisesta
 app.post('/api/auth/callback', async (req, res) => {
     const { code } = req.body;
     
