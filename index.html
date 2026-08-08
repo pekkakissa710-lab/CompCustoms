@@ -26,23 +26,48 @@
 </head>
 <body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
-    <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 relative shadow-2xl text-center space-y-4">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+    <div id="lobby-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 relative shadow-2xl space-y-6">
+            <button onclick="closeLobbyModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
-            <div class="mx-auto w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                <i data-lucide="wifi-off" class="w-6 h-6 text-red-500"></i>
+
+            <div class="space-y-1">
+                <span id="lm-time-tag" class="text-xs font-bold uppercase tracking-wider text-blue-400"></span>
+                <h3 id="lm-title" class="text-2xl font-black text-white"></h3>
             </div>
-            <h3 id="modal-title" class="text-xl font-bold text-white">Unable to connect</h3>
-            <p id="modal-body" class="text-slate-400 text-sm leading-relaxed">
-                Could not establish a connection to the server. Please try again later.
-            </p>
-            <div class="pt-2">
-                <button onclick="closeModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-sm transition-colors">
-                    Dismiss
-                </button>
+
+            <div class="grid grid-cols-3 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-center">
+                <div>
+                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Team Size</span>
+                    <span id="lm-team" class="text-sm font-extrabold text-white"></span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mode</span>
+                    <span id="lm-mode" class="text-sm font-extrabold text-white"></span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Submode</span>
+                    <span id="lm-submode" class="text-sm font-extrabold text-blue-400"></span>
+                </div>
             </div>
+
+            <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Custom Key</label>
+                <div id="lm-code-container" class="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                    <span id="lm-code" class="font-mono text-lg font-bold tracking-widest text-slate-300">••••••••</span>
+                    <button id="lm-action-btn" class="px-4 py-2 text-xs font-bold rounded-lg transition-all"></button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Info & Rules</label>
+                <div id="lm-desc" class="text-sm text-slate-300 whitespace-pre-line bg-slate-950/50 p-4 rounded-xl border border-slate-800/50 leading-relaxed"></div>
+            </div>
+
+            <button onclick="closeLobbyModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-sm transition-colors">
+                Sulje
+            </button>
         </div>
     </div>
 
@@ -58,12 +83,12 @@
                     </span>
                 </div>
 
-                <div class="shrink-0">
+                <div class="shrink-0 flex items-center gap-3">
                     <button id="login-epic" class="inline-flex items-center justify-center gap-2.5 px-3.5 sm:px-5 py-2.5 rounded-xl bg-black hover:bg-neutral-900 border border-neutral-700 text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-md hover:shadow-neutral-800/50 active:scale-95 whitespace-nowrap">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current shrink-0" viewBox="0 0 24 24">
                             <path d="M12 0L1.75 3.87v10.51C1.75 18.97 12 24 12 24s10.25-5.03 10.25-9.62V3.87L12 0zm6.8 13.5c0 3.1-6.8 6.9-6.8 6.9s-6.8-3.8-6.8-6.9V5.7l6.8-2.6 6.8 2.6v7.8z"/>
                         </svg>
-                        <span>Sign in with Epic Games</span>
+                        <span id="epic-btn-text">Sign in with Epic Games</span>
                     </button>
                 </div>
             </div>
@@ -92,7 +117,6 @@
         </section>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             <section class="lg:col-span-2 space-y-6">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
@@ -112,14 +136,10 @@
                     <div class="space-y-1">
                         <h3 class="text-lg font-bold text-white">Unable to connect</h3>
                         <p class="text-slate-400 text-sm max-w-md">
-                            Could not load custom lobbies. The matchmaking service is currently unavailable or disconnected.
+                            Could not load custom lobbies.
                         </p>
                     </div>
-                    
-                    <button id="retry-btn" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-200 font-semibold text-sm rounded-xl transition-all flex items-center gap-2">
-                        <i id="retry-icon" data-lucide="refresh-cw" class="w-4 h-4"></i>
-                        <span id="retry-text">Try Again</span>
-                    </button>
+                    <button id="retry-btn" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-all">Try Again</button>
                 </div>
 
                 <div id="lobbies-container" style="display:none" class="space-y-4"></div>
@@ -133,85 +153,106 @@
                     </div>
                 </div>
 
-                <div id="leaderboard-container" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-8 text-center flex flex-col items-center justify-center space-y-3">
+                <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-8 text-center flex flex-col items-center justify-center space-y-3">
                     <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-full text-red-400">
                         <i data-lucide="alert-circle" class="w-6 h-6"></i>
                     </div>
                     <div class="space-y-1">
                         <h3 class="text-base font-bold text-white">Unable to connect</h3>
-                        <p class="text-slate-400 text-xs">
-                            Leaderboard data is currently unavailable.
-                        </p>
+                        <p class="text-slate-400 text-xs">Leaderboard data is currently unavailable.</p>
                     </div>
                 </div>
             </section>
-
         </div>
     </main>
 
     <footer class="border-t border-slate-800/80 bg-black/40 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-                <p>&copy; 2026 CompCustoms. All rights reserved. Not affiliated with Epic Games.</p>
-                <div class="flex items-center space-x-6">
-                    <button onclick="openModal('privacy')" class="hover:text-slate-300 transition-colors">Privacy Policy</button>
-                    <button onclick="openModal('terms')" class="hover:text-slate-300 transition-colors">Terms of Service</button>
-                    <button onclick="openModal('support')" class="hover:text-slate-300 transition-colors">Support</button>
-                </div>
-            </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-xs text-slate-500">
+            <p>&copy; 2026 CompCustoms. All rights reserved. Not affiliated with Epic Games.</p>
         </div>
     </footer>
 
     <script>
         lucide.createIcons();
         const API_BASE = "https://compcustoms-api.onrender.com";
+        let isAuthenticated = localStorage.getItem('epic_authenticated') === 'true';
+        let currentLobbies = [];
 
-        function showErrorModal(title, text) {
-            document.getElementById('modal-title').innerText = title || 'Unable to connect';
-            document.getElementById('modal-body').innerHTML = `<p>${text || 'Could not establish a connection to the server.'}</p>`;
-            document.getElementById('modal').classList.remove('hidden');
+        function updateAuthStateUI() {
+            const btnText = document.getElementById('epic-btn-text');
+            if (isAuthenticated) {
+                btnText.textContent = "Authenticated (Epic)";
+            } else {
+                btnText.textContent = "Sign in with Epic Games";
+            }
         }
 
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
+        function formatLocalTime(isoString) {
+            const date = new Date(isoString);
+            if (isNaN(date)) return "UNKNOWN DATE";
+
+            const now = new Date();
+            const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+            const dayName = days[date.getDay()];
+            const dayNum = date.getDate();
+            const monthNum = date.getMonth() + 1;
+            
+            const hours = String(date.getHours()).padStart(2, '0');
+            const mins = String(date.getMinutes()).padStart(2, '0');
+
+            const diffTime = date.getTime() - now.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let relativeStr = "";
+            if (diffDays === 0) relativeStr = "(TODAY)";
+            else if (diffDays === 1) relativeStr = "(TOMORROW)";
+            else if (diffDays > 1) relativeStr = `(IN ${diffDays} DAYS)`;
+            else relativeStr = "(ENDED)";
+
+            return `${dayName} ${dayNum}.${monthNum} klo ${hours}:${mins} ${relativeStr}`;
         }
 
         async function probeLobbies() {
             try {
                 const res = await fetch(`${API_BASE}/api/tournaments`);
                 if (!res.ok) throw new Error('Offline');
-                const data = await res.json();
+                currentLobbies = await res.json();
 
-                const dot = document.getElementById('connection-dot');
-                const text = document.getElementById('connection-text');
-                const card = document.getElementById('unable-to-connect');
+                document.getElementById('connection-dot').className = 'w-2 h-2 rounded-full bg-emerald-500';
+                document.getElementById('connection-text').className = 'text-xs text-emerald-400';
+                document.getElementById('connection-text').textContent = 'Online';
+
+                document.getElementById('unable-to-connect').style.display = 'none';
                 const container = document.getElementById('lobbies-container');
-
-                dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
-                text.className = 'text-xs text-emerald-400';
-                text.textContent = 'Online';
-
-                card.style.display = 'none';
                 container.style.display = 'block';
                 container.innerHTML = '';
 
-                if (data.length === 0) {
+                if (currentLobbies.length === 0) {
                     container.innerHTML = '<p class="text-slate-500 text-center py-6 text-sm">Ei aktiivisia matseja tällä hetkellä.</p>';
                     return;
                 }
 
-                data.forEach(lobby => {
+                currentLobbies.forEach((lobby, index) => {
+                    const timeFormatted = formatLocalTime(lobby.startTime);
                     const item = document.createElement('div');
                     item.className = 'bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4';
+                    
                     item.innerHTML = `
-                        <div class="space-y-1">
-                            <h3 class="text-lg font-bold text-white">${lobby.name}</h3>
-                            <p class="text-slate-400 text-xs">${lobby.description || 'Ei kuvausta'}</p>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-bold rounded uppercase">${lobby.teamSize || 'SOLO'}</span>
+                                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded uppercase">${lobby.mode || 'BR'}</span>
+                                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded uppercase">${lobby.submode || 'BUILDS'}</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">${lobby.name}</h3>
+                                <p class="text-xs font-semibold text-blue-400 mt-0.5">📅 ${timeFormatted}</p>
+                            </div>
                         </div>
                         <div class="flex items-center gap-3 shrink-0">
-                            <div class="px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono font-bold text-sm rounded-lg">
-                                ${lobby.customCode}
-                            </div>
+                            <button onclick="openLobbyModal(${index})" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20">
+                                View Lobby
+                            </button>
                         </div>
                     `;
                     container.appendChild(item);
@@ -226,15 +267,57 @@
             }
         }
 
+        function openLobbyModal(index) {
+            const lobby = currentLobbies[index];
+            if (!lobby) return;
+
+            document.getElementById('lm-title').textContent = lobby.name;
+            document.getElementById('lm-time-tag').textContent = `📅 ${formatLocalTime(lobby.startTime)}`;
+            document.getElementById('lm-team').textContent = lobby.teamSize || 'SOLO';
+            document.getElementById('lm-mode').textContent = lobby.mode || 'BATTLE ROYALE';
+            document.getElementById('lm-submode').textContent = lobby.submode || 'BUILDS';
+            document.getElementById('lm-desc').textContent = lobby.description || 'Ei erillisiä ohjeita.';
+
+            const codeElem = document.getElementById('lm-code');
+            const actionBtn = document.getElementById('lm-action-btn');
+
+            if (isAuthenticated) {
+                codeElem.textContent = lobby.customCode;
+                codeElem.className = "font-mono text-lg font-bold tracking-widest text-emerald-400";
+                actionBtn.textContent = "Reserve your spot";
+                actionBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 cursor-default";
+                actionBtn.onclick = null;
+            } else {
+                codeElem.textContent = "••••••••";
+                codeElem.className = "font-mono text-lg font-bold tracking-widest text-slate-500";
+                actionBtn.textContent = "Sign in to view code";
+                actionBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white cursor-pointer transition-all";
+                actionBtn.onclick = () => {
+                    window.location.href = `${API_BASE}/api/auth/login`;
+                };
+            }
+
+            document.getElementById('lobby-modal').classList.remove('hidden');
+        }
+
+        function closeLobbyModal() {
+            document.getElementById('lobby-modal').classList.add('hidden');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            updateAuthStateUI();
             probeLobbies();
-            
-            document.getElementById('retry-btn').addEventListener('click', () => {
-                probeLobbies();
-            });
+
+            document.getElementById('retry-btn').addEventListener('click', probeLobbies);
 
             document.getElementById('login-epic').addEventListener('click', () => {
-                window.location.href = `${API_BASE}/api/auth/login`;
+                if (!isAuthenticated) {
+                    // MOCK Kirjautuminen testausta varten
+                    isAuthenticated = true;
+                    localStorage.setItem('epic_authenticated', 'true');
+                    updateAuthStateUI();
+                    alert("Kirjauduttu sisään Epic Games -tilillä!");
+                }
             });
         });
     </script>
