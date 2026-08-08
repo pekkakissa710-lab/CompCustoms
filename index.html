@@ -67,7 +67,7 @@
             </div>
 
             <button onclick="closeLobbyModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-sm transition-colors">
-                Sulje
+                Close
             </button>
         </div>
     </div>
@@ -206,17 +206,15 @@
             }
         }
 
-        // Käsitellään Epic-kirjautumisesta paluu (URL-osoitteen ?code=)
         async function handleAuthCallback() {
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
 
             if (code) {
-                // Siivotaan URL siistiksi
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
                 try {
-                    document.getElementById('epic-btn-text').textContent = "Kirjaudutaan...";
+                    document.getElementById('epic-btn-text').textContent = "Signing in...";
                     const res = await fetch(`${API_BASE}/api/auth/callback`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -231,11 +229,11 @@
                         localStorage.setItem('epic_username', username);
                         updateAuthStateUI();
                     } else {
-                        alert('Kirjautuminen epäonnistui.');
+                        alert('Authentication failed.');
                         updateAuthStateUI();
                     }
                 } catch (err) {
-                    alert('Virhe kirjautumisessa.');
+                    alert('Error during sign in.');
                     updateAuthStateUI();
                 }
             }
@@ -263,7 +261,7 @@
             else if (diffDays > 1) relativeStr = `(IN ${diffDays} DAYS)`;
             else relativeStr = "(ENDED)";
 
-            return `${dayName} ${dayNum}.${monthNum} klo ${hours}:${mins} ${relativeStr}`;
+            return `${dayName} ${dayNum}.${monthNum} at ${hours}:${mins} ${relativeStr}`;
         }
 
         async function probeLobbies() {
@@ -282,7 +280,7 @@
                 container.innerHTML = '';
 
                 if (currentLobbies.length === 0) {
-                    container.innerHTML = '<p class="text-slate-500 text-center py-6 text-sm">Ei aktiivisia matseja tällä hetkellä.</p>';
+                    container.innerHTML = '<p class="text-slate-500 text-center py-6 text-sm">No active matches at the moment.</p>';
                     return;
                 }
 
@@ -332,7 +330,7 @@
             document.getElementById('lm-team').textContent = lobby.teamSize || 'SOLO';
             document.getElementById('lm-mode').textContent = lobby.mode || 'BATTLE ROYALE';
             document.getElementById('lm-submode').textContent = lobby.submode || 'BUILDS';
-            document.getElementById('lm-desc').textContent = lobby.description || 'Ei erillisiä ohjeita.';
+            document.getElementById('lm-desc').textContent = lobby.description || 'No specific rules.';
 
             const codeElem = document.getElementById('lm-code');
             const actionBtn = document.getElementById('lm-action-btn');
@@ -369,7 +367,6 @@
 
             document.getElementById('login-epic').addEventListener('click', () => {
                 if (!isAuthenticated) {
-                    // Ohjaa Epic Games -kirjautumissivulle
                     window.location.href = `${API_BASE}/api/auth/login`;
                 }
             });
@@ -377,3 +374,4 @@
     </script>
 </body>
 </html>
+
