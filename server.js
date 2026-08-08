@@ -47,7 +47,7 @@ app.post('/api/tournaments', (req, res) => {
         name,
         customCode,
         description: fullDescription,
-        startTime, // ISO string UTC / Local timestamp
+        startTime,
         teamSize: teamSize || 'SOLO',
         mode: mode || 'BATTLE ROYALE',
         submode: submode || 'BUILDS',
@@ -56,6 +56,19 @@ app.post('/api/tournaments', (req, res) => {
 
     tournaments.unshift(newMatch);
     res.json({ success: true, match: newMatch });
+});
+
+// Matsin poistaminen
+app.delete('/api/tournaments/:id', (req, res) => {
+    const { secret } = req.body;
+    const matchId = Number(req.params.id);
+
+    if (secret !== process.env.EPIC_CLIENT_SECRET) {
+        return res.status(401).json({ success: false, message: 'Ei oikeuksia!' });
+    }
+
+    tournaments = tournaments.filter(t => t.id !== matchId);
+    res.json({ success: true, message: 'Matsi poistettu!' });
 });
 
 // Epic Auth Login
