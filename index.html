@@ -203,7 +203,6 @@
         let username = localStorage.getItem('epic_username') || '';
         let currentLobbies = [];
 
-        // Tarkistetaan banni-statukset backendistä
         async function checkBanStatus() {
             try {
                 const res = await fetch(`${API_BASE}/api/tournaments`);
@@ -212,7 +211,7 @@
                     return true;
                 }
             } catch (err) {
-                // Jos palvelin on offline tai tulee banni-responsi
+                // Virhetilanteet
             }
             return false;
         }
@@ -398,7 +397,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
-            // Tarkistetaan banni heti ensi töiksi
             const isBanned = await checkBanStatus();
             if (isBanned) return;
 
