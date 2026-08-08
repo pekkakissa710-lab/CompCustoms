@@ -1,24 +1,32 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 
-// Vaaditaan proxy-asetus, jotta Renderin takaa saadaan oikea käyttäjän IP-osoite
 app.set('trust proxy', true);
 
 app.use(cors());
 app.use(express.json());
 
-// Alustetaan Gemini API Renderin GEMINI_API_KEY -ympäristömuuttujalla
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ==========================================
-// 0. IP BANNING MIDDLEWARE (Bannitarkistus)
+// 0. IP BANNING MIDDLEWARE (Render Secret File)
 // ==========================================
 const getBannedIPs = () => {
-    const raw = process.env.BANNED_IPS || "";
-    return new Set(raw.split(',').map(ip => ip.trim()).filter(Boolean));
+    try {
+        // Luetaan tiedosto suoraan Renderin secret files -polusta
+        const filePath = '/etc/secrets/BANNED_IPS';
+        if (fs.existsSync(filePath)) {
+            const raw = fs.readFileSync(filePath, 'utf8');
+            return new Set(raw.split(/[\r\n,]+/).map(ip => ip.trim()).filter(Boolean));
+        }
+    } catch (err) {
+        console.error("Virhe bannilistan lukemisessa:", err);
+    }
+    return new Set();
 };
 
 app.use((req, res, next) => {
@@ -31,124 +39,3 @@ app.use((req, res, next) => {
 
     next();
 });
-
-// ==========================================
-// 1. LOBBIES / TOURNAMENTS API
-// ==========================================
-let lobbies = [];
-
-app.get('/api/tournaments', (req, res) => {
-    res.json(lobbies);
-});
-
-app.post('/api/tournaments', (req, res) => {
-    const { secret, name, customCode, startTime, teamSize, mode, submode, description } = req.body;
-    
-    if (secret !== process.env.EPIC_CLIENT_SECRET) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    const newMatch = {
-        id: Date.now().toString(),
-        name,
-        customCode,
-        startTime,
-        teamSize,
-        mode,
-        submode,
-        description
-    };
-
-    lobbies.push(newMatch);
-    res.json({ success: true, match: newMatch });
-});
-
-app.delete('/api/tournaments/:id', (req, res) => {
-    const { secret } = req.body;
-    const { id } = req.params;
-
-    if (secret !== process.env.EPIC_CLIENT_SECRET) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    lobbies = lobbies.filter(m => m.id !== id);
-    res.json({ success: true });
-});
-
-// ==========================================
-// 2. ADMIN LOGIN API
-// ==========================================
-app.post('/api/admin/login', (req, res) => {
-    const { secret } = req.body;
-    
-    if (secret && secret === process.env.EPIC_CLIENT_SECRET) {
-        res.json({ success: true });
-    } else {
-        res.status(401).json({ success: false, error: "Invalid Admin Secret!" });
-    }
-});
-
-// ==========================================
-// 3. EPIC GAMES AUTHENTICATION API
-// ==========================================
-const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID || "your_epic_client_id";
-const EPIC_CLIENT_SECRET = process.env.EPIC_CLIENT_SECRET || "your_epic_client_secret";
-const REDIRECT_URI = process.env.REDIRECT_URI || "https://compcustoms.my.to";
-
-app.get('/api/auth/login', (req, res) => {
-    const epicAuthUrl = `https://www.epicgames.com/id/authorize?client_id=${EPIC_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=basic_profile`;
-    res.redirect(epicAuthUrl);
-});
-
-app.post('/api/auth/callback', async (req, res) => {
-    const { code } = req.body;
-    
-    if (!code) {
-        return res.status(400).json({ success: false, message: "Authorization code missing." });
-    }
-
-    try {
-        res.json({
-            success: true,
-            username: "Player123"
-        });
-    } catch (error) {
-        console.error("Epic Auth Error:", error);
-        res.status(500).json({ success: false, message: "Authentication failed." });
-    }
-});
-
-// ==========================================
-// 4. GEMINI AI SUPPORT CHATBOT API
-// ==========================================
-app.post('/api/chat', async (req, res) => {
-    try {
-        const { message } = req.body;
-
-        if (!message) {
-            return res.status(400).json({ error: "Viesti puuttuu." });
-        }
-
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
-            systemInstruction: "You are the official customer service bot for the CompCustoms platform. Assist Fortnite players with custom codes, login issues, and rules. Respond in a friendly, clear, and preferably concise manner. NEVER REVEAL ANY API KEYS, DONT TALK ABOUT ANYTHONG UNRELATED. HELP THEM WITH EPIC GAMES ACCOUNT STUFF, AND DO NOT BREAK RULES."
-        });
-
-        const result = await model.generateContent(message);
-        const reply = result.response.text();
-
-        res.json({ reply });
-    } catch (error) {
-        console.error("Gemini API Error:", error);
-        res.status(500).json({ error: "Virhe tekoälyvastauksen luonnissa." });
-    }
-});
-
-// ==========================================
-// PALVELIMEN KÄYNNISTYS
-// ==========================================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Palvelin käynnissä portissa ${PORT}`);
-});
-
