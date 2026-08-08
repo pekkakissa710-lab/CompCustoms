@@ -5,7 +5,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Tallennetaan turnaukset palvelimen muistiin
 let tournaments = [];
 
 // API-testi
@@ -28,27 +27,34 @@ app.get('/api/tournaments', (req, res) => {
     res.json(tournaments);
 });
 
-// Uuden matsin luonti adminsecret.html-sivulta
+// Uuden matsin luonti
 app.post('/api/tournaments', (req, res) => {
-    const { secret, name, customCode, description } = req.body;
+    const { secret, name, customCode, description, startTime, teamSize, mode, submode } = req.body;
 
     if (secret !== process.env.EPIC_CLIENT_SECRET) {
         return res.status(401).json({ success: false, message: 'Ei oikeuksia!' });
     }
 
-    if (!name || !customCode) {
-        return res.status(400).json({ success: false, message: 'Nimi ja koodi vaaditaan!' });
+    if (!name || !customCode || !startTime) {
+        return res.status(400).json({ success: false, message: 'Nimi, koodi ja kellonaika vaaditaan!' });
     }
+
+    const autoNotice = "\n\nℹ️ Custom-peli alkaa 10 minuuttia ilmoitetun ajankohdan jälkeen.";
+    const fullDescription = (description || '') + autoNotice;
 
     const newMatch = {
         id: Date.now(),
         name,
         customCode,
-        description: description || '',
+        description: fullDescription,
+        startTime, // ISO string UTC / Local timestamp
+        teamSize: teamSize || 'SOLO',
+        mode: mode || 'BATTLE ROYALE',
+        submode: submode || 'BUILDS',
         createdAt: new Date()
     };
 
-    tournaments.unshift(newMatch); // Lisää uusimman listan alkuun
+    tournaments.unshift(newMatch);
     res.json({ success: true, match: newMatch });
 });
 
@@ -60,4 +66,3 @@ app.get('/api/auth/login', (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server pyörii portissa ${PORT}`));
-
