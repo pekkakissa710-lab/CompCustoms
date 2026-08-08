@@ -13,28 +13,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // ==========================================
 // 1. LOBBIES / TOURNAMENTS API
 // ==========================================
-const mockLobbies = [
-    {
-        id: "1",
-        name: "EU Solo Scrims - Session 1",
-        startTime: new Date(Date.now() + 3600000).toISOString(),
-        teamSize: "SOLO",
-        mode: "BR",
-        submode: "BUILDS",
-        customCode: "COMP123",
-        description: "Official EU Solo scrims. Strict rule against griefing."
-    },
-    {
-        id: "2",
-        name: "EU Duo Customs - Zone Wars",
-        startTime: new Date(Date.now() + 7200000).toISOString(),
-        teamSize: "DUO",
-        mode: "ZW",
-        submode: "BUILDS",
-        customCode: "ZWDUO88",
-        description: "Duo Zone Wars custom practice."
-    }
-];
+const mockLobbies = [];
 
 app.get('/api/tournaments', (req, res) => {
     res.json(mockLobbies);
