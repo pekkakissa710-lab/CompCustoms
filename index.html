@@ -41,11 +41,11 @@
             <div class="grid grid-cols-3 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-center">
                 <div>
                     <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Team Size</span>
-                    <span id="lm-team" class="text-sm font-extrabold text-white"></span>
+                    <span id="lm-team" class="text-sm font-extrabold text-blue-400"></span>
                 </div>
                 <div>
                     <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mode</span>
-                    <span id="lm-mode" class="text-sm font-extrabold text-white"></span>
+                    <span id="lm-mode" class="text-sm font-extrabold text-blue-400"></span>
                 </div>
                 <div>
                     <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Submode</span>
@@ -233,12 +233,14 @@
                     const item = document.createElement('div');
                     item.className = 'bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4';
                     
+                    const tagClass = "px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-extrabold rounded-md uppercase tracking-wider";
+
                     item.innerHTML = `
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-bold rounded uppercase">${lobby.teamSize || 'SOLO'}</span>
-                                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded uppercase">${lobby.mode || 'BR'}</span>
-                                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded uppercase">${lobby.submode || 'BUILDS'}</span>
+                                <span class="${tagClass}">${lobby.teamSize || 'SOLO'}</span>
+                                <span class="${tagClass}">${lobby.mode || 'BR'}</span>
+                                <span class="${tagClass}">${lobby.submode || 'BUILDS'}</span>
                             </div>
                             <div>
                                 <h3 class="text-lg font-bold text-white">${lobby.name}</h3>
@@ -318,4 +320,3 @@
     </script>
 </body>
 </html>
-
