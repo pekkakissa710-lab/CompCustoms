@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMPCUSTOMS - Account</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex items-center justify-center p-4">
+
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 shadow-2xl space-y-6">
+        <div class="flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-2 text-slate-400 hover:text-white text-xs font-semibold uppercase tracking-wider">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Back to Hub</span>
+            </a>
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button onclick="switchTab('login')" id="tab-login" class="px-3 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all">Login</button>
+                <button onclick="switchTab('register')" id="tab-register" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all">Register</button>
+            </div>
+        </div>
+
+        <div class="space-y-1">
+            <h1 id="form-title" class="text-2xl font-black text-white tracking-wide">Welcome Back</h1>
+            <p class="text-xs text-amber-400 font-semibold bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl leading-relaxed">
+                ⚠️ For your safety, don't use your epic password here!
+            </p>
+        </div>
+
+        <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+            <div id="email-field">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Email</label>
+                <input type="email" id="input-email" required placeholder="name@example.com" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500">
+            </div>
+
+            <div id="username-field" class="hidden">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Epic Username</label>
+                <input type="text" id="input-username" placeholder="YourIngameName" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Password</label>
+                <input type="password" id="input-password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500">
+            </div>
+
+            <button type="submit" id="submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">
+                Login
+            </button>
+        </form>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const API_BASE = "https://compcustoms-api.onrender.com";
+        let currentMode = 'login';
+
+        function switchTab(mode) {
+            currentMode = mode;
+            const title = document.getElementById('form-title');
+            const userField = document.getElementById('username-field');
+            const submitBtn = document.getElementById('submit-btn');
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+
+            if (mode === 'login') {
+                title.textContent = "Welcome Back";
+                userField.classList.add('hidden');
+                document.getElementById('input-username').required = false;
+                submitBtn.textContent = "Login";
+                tabLogin.className = "px-3 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all";
+                tabRegister.className = "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+            } else {
+                title.textContent = "Create Account";
+                userField.classList.remove('hidden');
+                document.getElementById('input-username').required = true;
+                submitBtn.textContent = "Register & Send Email";
+                tabRegister.className = "px-3 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all";
+                tabLogin.className = "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+            }
+        }
+
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('input-email').value;
+            const password = document.getElementById('input-password').value;
+            const epicUsername = document.getElementById('input-username').value;
+
+            const endpoint = currentMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+            const payload = currentMode === 'login' ? { email, password } : { email, epicUsername, password };
+
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('epic_authenticated', 'true');
+                    localStorage.setItem('epic_username', data.username);
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.message || "Tapahtui virhe.");
+                }
+            } catch (err) {
+                alert("Yhteysvirhe palvelimeen.");
+            }
+        }
+    </script>
+</body>
+</html>
+
