@@ -1,168 +1,385 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CompCustoms | Hallinta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #0a0a0a;
-            color: #f5f5f5;
-            font-family: 'Urbanist', sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+    <title>COMPCUSTOMS - Fortnite Comp Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            purple: '#7928CA',
+                            darkBg: '#050B14',
+                            cardBg: '#0D1527',
+                            border: '#1E293B'
+                        }
+                    }
+                }
+            }
         }
-
-        .container { width: 100%; max-width: 500px; }
-        
-        h1 { color: #deff9a; text-align: center; font-size: 32px; }
-        h2 { color: #deff9a; font-size: 20px; margin-top: 0; }
-
-        .card {
-            background: #111;
-            border: 1px solid #333;
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        input, textarea {
-            width: 100%;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            color: white;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
-
-        button {
-            width: 100%;
-            background: #deff9a;
-            color: black;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            text-transform: uppercase;
-            margin-top: 10px;
-        }
-
-        .hidden { display: none; }
-
-        .match-card {
-            background: #111;
-            border-left: 4px solid #deff9a;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-        }
-
-        .match-code {
-            background: #deff9a;
-            color: black;
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-    </style>
+    </script>
 </head>
-<body>
+<body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
-<div class="container">
-    <h1>Comp<span>Customs</span></h1>
-
-    <div id="auth-box" class="card">
-        <h2>Admin Kirjautuminen</h2>
-        <input type="password" id="admin-secret" placeholder="Syötä Admin Secret...">
-        <button onclick="login()">Kirjaudu sisään</button>
+    <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 relative shadow-2xl text-center space-y-4">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="mx-auto w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                <i data-lucide="wifi-off" class="w-6 h-6 text-red-500"></i>
+            </div>
+            <h3 id="modal-title" class="text-xl font-bold text-white">Unable to connect</h3>
+            <p id="modal-body" class="text-slate-400 text-sm leading-relaxed">
+                Could not establish a connection to the server. Please try again later.
+            </p>
+            <div class="pt-2">
+                <button onclick="closeModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-sm transition-colors">
+                    Dismiss
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div id="admin-panel" class="card hidden">
-        <h2>Luo uusi matsi</h2>
-        <input type="text" id="m-name" placeholder="Matsin nimi (esim. Friday Night)">
-        <input type="text" id="m-code" placeholder="Custom Code (esim. COMP1)">
-        <textarea id="m-desc" placeholder="Kuvaus / Säännöt" rows="3"></textarea>
-        <button onclick="createMatch()">🚀 Julkaise matsi</button>
-    </div>
-
-    <div id="match-list-container">
-        <h2>Aktiiviset matsit</h2>
-        <div id="matches">Ladataan matseja...</div>
-    </div>
-</div>
-
-<script>
-    // VAIHDA TÄHÄN OMA RENDER-OSOITTEESI
-    const API_BASE = 'https://compcustoms-api.onrender.com'; 
-    let currentSecret = '';
-
-    async function login() {
-        const secret = document.getElementById('admin-secret').value;
-        const res = await fetch(`${API_BASE}/api/admin/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ secret })
-        });
-
-        if (res.ok) {
-            currentSecret = secret;
-            document.getElementById('auth-box').classList.add('hidden');
-            document.getElementById('admin-panel').classList.remove('hidden');
-            alert('Kirjautuminen onnistui!');
-        } else {
-            alert('Väärä koodi!');
-        }
-    }
-
-    async function createMatch() {
-        const name = document.getElementById('m-name').value;
-        const customCode = document.getElementById('m-code').value;
-        const description = document.getElementById('m-desc').value;
-
-        const res = await fetch(`${API_BASE}/api/tournaments`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ secret: currentSecret, name, customCode, description })
-        });
-
-        if (res.ok) {
-            alert('Matsi luotu!');
-            loadMatches();
-        } else {
-            alert('Virhe luonnissa.');
-        }
-    }
-
-    async function loadMatches() {
-        const res = await fetch(`${API_BASE}/api/tournaments`);
-        const data = await res.json();
-        const container = document.getElementById('matches');
-        container.innerHTML = '';
-
-        data.forEach(m => {
-            container.innerHTML += `
-                <div class="match-card">
-                    <strong>${m.name}</strong><br>
-                    <small>${m.description}</small><br>
-                    <div class="match-code">Koodi: ${m.customCode}</div>
+    <div id="admin-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 relative shadow-2xl space-y-6">
+            <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-600/20 border border-blue-500/30 rounded-xl text-blue-400">
+                    <i data-lucide="shield-alert" class="w-6 h-6"></i>
                 </div>
-            `;
+                <h3 class="text-xl font-bold text-white">Admin Panel</h3>
+            </div>
+
+            <div id="admin-auth-step" class="space-y-4">
+                <p class="text-slate-400 text-sm">Syötä salainen <strong>Client Secret</strong> avataksesi matsin luonnin.</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Admin Secret</label>
+                    <input type="password" id="admin-secret-input" placeholder="Syötä secret..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm">
+                </div>
+                <button onclick="handleAdminLogin()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">
+                    Kirjaudu Sisään
+                </button>
+            </div>
+
+            <div id="admin-create-step" class="space-y-4 hidden">
+                <p class="text-emerald-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Autentikoitu
+                </p>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Match Name</label>
+                        <input type="text" id="m-name" placeholder="esim. Friday Night Customs" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Custom Code</label>
+                        <input type="text" id="m-code" placeholder="esim. COMP123" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm font-mono uppercase">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Description</label>
+                        <textarea id="m-desc" rows="3" placeholder="Säännöt, palvelin, tilaus jne..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 text-sm"></textarea>
+                    </div>
+                </div>
+
+                <button onclick="handleCreateMatch()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">
+                    🚀 Julkaise Matsi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sticky top-0 z-40 backdrop-blur-md bg-[#050B14]/80 border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                <div class="flex items-center space-x-3 cursor-pointer group shrink-0">
+                    <div class="p-2 sm:p-2.5 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all duration-300">
+                        <i data-lucide="crosshair" class="w-6 h-6 sm:w-7 sm:h-7 text-white"></i>
+                    </div>
+                    <span class="text-xl sm:text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-blue-400">
+                        COMP<span class="text-blue-500">CUSTOMS</span>
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+                    <button onclick="openAdminModal()" title="Avaa Admin Panel (Paina 'L')" class="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-bold text-xs sm:text-sm tracking-wide transition-all active:scale-95">
+                        <i data-lucide="lock" class="w-4 h-4 text-blue-400"></i>
+                        <span>Admin</span>
+                        <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] bg-slate-800 border border-slate-700 rounded text-slate-400">L</kbd>
+                    </button>
+
+                    <button id="login-epic" class="inline-flex items-center justify-center gap-2.5 px-3.5 sm:px-5 py-2.5 rounded-xl bg-black hover:bg-neutral-900 border border-neutral-700 text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-md hover:shadow-neutral-800/50 active:scale-95 whitespace-nowrap">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current shrink-0" viewBox="0 0 24 24">
+                            <path d="M12 0L1.75 3.87v10.51C1.75 18.97 12 24 12 24s10.25-5.03 10.25-9.62V3.87L12 0zm6.8 13.5c0 3.1-6.8 6.9-6.8 6.9s-6.8-3.8-6.8-6.9V5.7l6.8-2.6 6.8 2.6v7.8z"/>
+                        </svg>
+                        <span>Sign in with Epic Games</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-12">
+        
+        <section class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-950/40 via-indigo-950/20 to-transparent border border-slate-800 p-8 md:p-12">
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative z-10 max-w-3xl space-y-6">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold uppercase tracking-wider">
+                    <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
+                    <span>Competitive Platform</span>
+                </div>
+                
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none text-white">
+                    FORTNITE <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">COMP HUB</span>
+                </h1>
+                
+                <p class="text-slate-400 text-base sm:text-lg leading-relaxed max-w-2xl">
+                    Play and practice custom scrims across all regions. Sign in with Epic Games to access custom keys and live lobby information.
+                </p>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <section class="lg:col-span-2 space-y-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="radio" class="w-6 h-6 text-slate-500"></i>
+                        <h2 class="text-xl font-bold text-white tracking-wide">Lobbies</h2>
+                    </div>
+                    <span id="connection-status" class="text-xs flex items-center gap-2">
+                        <span id="connection-dot" class="w-2 h-2 rounded-full bg-red-500"></span>
+                        <span id="connection-text" class="text-red-400">Offline</span>
+                    </span>
+                </div>
+
+                <div id="unable-to-connect" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
+                    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-full text-red-400">
+                        <i data-lucide="wifi-off" class="w-8 h-8"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-bold text-white">Unable to connect</h3>
+                        <p class="text-slate-400 text-sm max-w-md">
+                            Could not load custom lobbies. The matchmaking service is currently unavailable or disconnected.
+                        </p>
+                    </div>
+                    
+                    <button id="retry-btn" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-200 font-semibold text-sm rounded-xl transition-all flex items-center gap-2">
+                        <i id="retry-icon" data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span id="retry-text">Try Again</span>
+                    </button>
+                </div>
+
+                <div id="lobbies-container" style="display:none" class="space-y-4"></div>
+            </section>
+
+            <section class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="trophy" class="w-6 h-6 text-slate-500"></i>
+                        <h2 class="text-xl font-bold text-white tracking-wide">Top Players</h2>
+                    </div>
+                </div>
+
+                <div id="leaderboard-container" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-8 text-center flex flex-col items-center justify-center space-y-3">
+                    <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-full text-red-400">
+                        <i data-lucide="alert-circle" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-base font-bold text-white">Unable to connect</h3>
+                        <p class="text-slate-400 text-xs">
+                            Leaderboard data is currently unavailable.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="border-t border-slate-800/80 bg-black/40 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+                <p>&copy; 2026 CompCustoms. All rights reserved. Not affiliated with Epic Games.</p>
+                <div class="flex items-center space-x-6">
+                    <button onclick="openModal('privacy')" class="hover:text-slate-300 transition-colors">Privacy Policy</button>
+                    <button onclick="openModal('terms')" class="hover:text-slate-300 transition-colors">Terms of Service</button>
+                    <button onclick="openModal('support')" class="hover:text-slate-300 transition-colors">Support</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // RENDER BACKEND OSOITE
+        const API_BASE = "https://compcustoms-api.onrender.com"; 
+        let activeAdminSecret = '';
+
+        function showErrorModal(title, text) {
+            document.getElementById('modal-title').innerText = title || 'Unable to connect';
+            document.getElementById('modal-body').innerHTML = `<p>${text || 'Could not establish a connection to the server.'}</p>`;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        // ADMIN MODAL LOGIIKKA
+        function openAdminModal() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+
+        // 'L' NÄPPÄINHALLINTA (Aukaisee Admin paneelin näppäimistöltä)
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'l' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                openAdminModal();
+            }
         });
-    }
 
-    loadMatches(); // Lataa matsit heti
-</script>
+        // ADMIN KIRJAUTUMINEN
+        async function handleAdminLogin() {
+            const secret = document.getElementById('admin-secret-input').value;
+            if (!secret) return alert('Syötä secret!');
 
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ secret })
+                });
+
+                if (res.ok) {
+                    activeAdminSecret = secret;
+                    document.getElementById('admin-auth-step').classList.add('hidden');
+                    document.getElementById('admin-create-step').classList.remove('hidden');
+                } else {
+                    alert('Väärä Admin Secret!');
+                }
+            } catch (err) {
+                alert('Yhteysvirhe palvelimeen!');
+            }
+        }
+
+        // MATSIN LUONTI
+        async function handleCreateMatch() {
+            const name = document.getElementById('m-name').value;
+            const customCode = document.getElementById('m-code').value;
+            const description = document.getElementById('m-desc').value;
+
+            if (!name || !customCode) return alert('Täytä vähintään nimi ja koodi!');
+
+            try {
+                const res = await fetch(`${API_BASE}/api/tournaments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        secret: activeAdminSecret,
+                        name,
+                        customCode,
+                        description
+                    })
+                });
+
+                if (res.ok) {
+                    alert('Matsi julkaistu onnistuneesti!');
+                    document.getElementById('m-name').value = '';
+                    document.getElementById('m-code').value = '';
+                    document.getElementById('m-desc').value = '';
+                    closeAdminModal();
+                    probeLobbies(); // Päivittää lobbi-listan heti
+                } else {
+                    alert('Virhe matsin luonnissa.');
+                }
+            } catch (err) {
+                alert('Tapahtui virhe.');
+            }
+        }
+
+        // LOBBYJEN HAKU JA RENDERÖINTI
+        async function probeLobbies() {
+            try {
+                const res = await fetch(`${API_BASE}/api/tournaments`);
+                if (!res.ok) throw new Error('Offline');
+                const data = await res.json();
+
+                const dot = document.getElementById('connection-dot');
+                const text = document.getElementById('connection-text');
+                const card = document.getElementById('unable-to-connect');
+                const container = document.getElementById('lobbies-container');
+
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+                text.className = 'text-xs text-emerald-400';
+                text.textContent = 'Online';
+
+                card.style.display = 'none';
+                container.style.display = 'block';
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="text-slate-500 text-center py-6 text-sm">Ei aktiivisia matseja tällä hetkellä.</p>';
+                    return;
+                }
+
+                data.forEach(lobby => {
+                    const item = document.createElement('div');
+                    item.className = 'bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4';
+                    item.innerHTML = `
+                        <div class="space-y-1">
+                            <h3 class="text-lg font-bold text-white">${lobby.name}</h3>
+                            <p class="text-slate-400 text-xs">${lobby.description || 'Ei kuvausta'}</p>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <div class="px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono font-bold text-sm rounded-lg">
+                                ${lobby.customCode}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+
+            } catch (err) {
+                document.getElementById('unable-to-connect').style.display = '';
+                document.getElementById('lobbies-container').style.display = 'none';
+                document.getElementById('connection-dot').className = 'w-2 h-2 rounded-full bg-red-500';
+                document.getElementById('connection-text').className = 'text-xs text-red-400';
+                document.getElementById('connection-text').textContent = 'Offline';
+            }
+        }
+
+        // SIVUN ALUSTUS
+        document.addEventListener('DOMContentLoaded', () => {
+            probeLobbies();
+            
+            // Retry button
+            document.getElementById('retry-btn').addEventListener('click', () => {
+                probeLobbies();
+            });
+
+            // Login with Epic Games
+            document.getElementById('login-epic').addEventListener('click', () => {
+                window.location.href = `${API_BASE}/api/auth/login`;
+            });
+        });
+    </script>
 </body>
 </html>
+
