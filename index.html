@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COMPCUSTOMS - Fortnite Comp Hub</title>
+    <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -75,9 +76,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20 gap-4">
                 <div class="flex items-center space-x-3 cursor-pointer group shrink-0">
-                    <div class="p-2 sm:p-2.5 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all duration-300">
-                        <i data-lucide="crosshair" class="w-6 h-6 sm:w-7 sm:h-7 text-white"></i>
-                    </div>
+                    <img src="logo.png" alt="Logo" class="w-8 h-8 rounded-lg">
                     <span class="text-xl sm:text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-blue-400">
                         COMP<span class="text-blue-500">CUSTOMS</span>
                     </span>
@@ -96,7 +95,6 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-12">
-        
         <section class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-950/40 via-indigo-950/20 to-transparent border border-slate-800 p-8 md:p-12">
             <div class="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
             
@@ -135,9 +133,7 @@
                     </div>
                     <div class="space-y-1">
                         <h3 class="text-lg font-bold text-white">Unable to connect</h3>
-                        <p class="text-slate-400 text-sm max-w-md">
-                            Could not load custom lobbies.
-                        </p>
+                        <p class="text-slate-400 text-sm max-w-md">Could not load custom lobbies.</p>
                     </div>
                     <button id="retry-btn" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-all">Try Again</button>
                 </div>
@@ -312,7 +308,6 @@
 
             document.getElementById('login-epic').addEventListener('click', () => {
                 if (!isAuthenticated) {
-                    // MOCK Kirjautuminen testausta varten
                     isAuthenticated = true;
                     localStorage.setItem('epic_authenticated', 'true');
                     updateAuthStateUI();
@@ -323,3 +318,4 @@
     </script>
 </body>
 </html>
+
