@@ -1,168 +1,63 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CompCustoms | Hallinta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #0a0a0a;
-            color: #f5f5f5;
-            font-family: 'Urbanist', sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+const express = require('express');
+const cors = require('cors');
+const app = express();
 
-        .container { width: 100%; max-width: 500px; }
-        
-        h1 { color: #deff9a; text-align: center; font-size: 32px; }
-        h2 { color: #deff9a; font-size: 20px; margin-top: 0; }
+app.use(cors());
+app.use(express.json());
 
-        .card {
-            background: #111;
-            border: 1px solid #333;
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+// Tallennetaan turnaukset palvelimen muistiin
+let tournaments = [];
 
-        input, textarea {
-            width: 100%;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            color: white;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
+// API-testi
+app.get('/', (req, res) => {
+    res.send('CompCustoms API pyörii!');
+});
 
-        button {
-            width: 100%;
-            background: #deff9a;
-            color: black;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            text-transform: uppercase;
-            margin-top: 10px;
-        }
+// Admin-kirjautumisen tarkistus
+app.post('/api/admin/login', (req, res) => {
+    const { secret } = req.body;
+    if (secret === process.env.EPIC_CLIENT_SECRET) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ success: false, message: 'Väärä secret!' });
+    }
+});
 
-        .hidden { display: none; }
+// Hae kaikki turnaukset
+app.get('/api/tournaments', (req, res) => {
+    res.json(tournaments);
+});
 
-        .match-card {
-            background: #111;
-            border-left: 4px solid #deff9a;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-        }
+// Uuden matsin luonti adminsecret.html-sivulta
+app.post('/api/tournaments', (req, res) => {
+    const { secret, name, customCode, description } = req.body;
 
-        .match-code {
-            background: #deff9a;
-            color: black;
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>Comp<span>Customs</span></h1>
-
-    <div id="auth-box" class="card">
-        <h2>Admin Kirjautuminen</h2>
-        <input type="password" id="admin-secret" placeholder="Syötä Admin Secret...">
-        <button onclick="login()">Kirjaudu sisään</button>
-    </div>
-
-    <div id="admin-panel" class="card hidden">
-        <h2>Luo uusi matsi</h2>
-        <input type="text" id="m-name" placeholder="Matsin nimi (esim. Friday Night)">
-        <input type="text" id="m-code" placeholder="Custom Code (esim. COMP1)">
-        <textarea id="m-desc" placeholder="Kuvaus / Säännöt" rows="3"></textarea>
-        <button onclick="createMatch()">🚀 Julkaise matsi</button>
-    </div>
-
-    <div id="match-list-container">
-        <h2>Aktiiviset matsit</h2>
-        <div id="matches">Ladataan matseja...</div>
-    </div>
-</div>
-
-<script>
-    // VAIHDA TÄHÄN OMA RENDER-OSOITTEESI
-    const API_BASE = 'https://compcustoms-api.onrender.com'; 
-    let currentSecret = '';
-
-    async function login() {
-        const secret = document.getElementById('admin-secret').value;
-        const res = await fetch(`${API_BASE}/api/admin/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ secret })
-        });
-
-        if (res.ok) {
-            currentSecret = secret;
-            document.getElementById('auth-box').classList.add('hidden');
-            document.getElementById('admin-panel').classList.remove('hidden');
-            alert('Kirjautuminen onnistui!');
-        } else {
-            alert('Väärä koodi!');
-        }
+    if (secret !== process.env.EPIC_CLIENT_SECRET) {
+        return res.status(401).json({ success: false, message: 'Ei oikeuksia!' });
     }
 
-    async function createMatch() {
-        const name = document.getElementById('m-name').value;
-        const customCode = document.getElementById('m-code').value;
-        const description = document.getElementById('m-desc').value;
-
-        const res = await fetch(`${API_BASE}/api/tournaments`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ secret: currentSecret, name, customCode, description })
-        });
-
-        if (res.ok) {
-            alert('Matsi luotu!');
-            loadMatches();
-        } else {
-            alert('Virhe luonnissa.');
-        }
+    if (!name || !customCode) {
+        return res.status(400).json({ success: false, message: 'Nimi ja koodi vaaditaan!' });
     }
 
-    async function loadMatches() {
-        const res = await fetch(`${API_BASE}/api/tournaments`);
-        const data = await res.json();
-        const container = document.getElementById('matches');
-        container.innerHTML = '';
+    const newMatch = {
+        id: Date.now(),
+        name,
+        customCode,
+        description: description || '',
+        createdAt: new Date()
+    };
 
-        data.forEach(m => {
-            container.innerHTML += `
-                <div class="match-card">
-                    <strong>${m.name}</strong><br>
-                    <small>${m.description}</small><br>
-                    <div class="match-code">Koodi: ${m.customCode}</div>
-                </div>
-            `;
-        });
-    }
+    tournaments.unshift(newMatch); // Lisää uusimman listan alkuun
+    res.json({ success: true, match: newMatch });
+});
 
-    loadMatches(); // Lataa matsit heti
-</script>
+// Epic Auth Login
+app.get('/api/auth/login', (req, res) => {
+    const authUrl = `https://www.epicgames.com/id/authorize?client_id=${process.env.EPIC_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.EPIC_REDIRECT_URI)}`;
+    res.redirect(authUrl);
+});
 
-</body>
-</html>
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Server pyörii portissa ${PORT}`));
+
