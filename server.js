@@ -4,11 +4,33 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 
+// Vaaditaan proxy-asetus, jotta Renderin takaa saadaan oikea käyttäjän IP-osoite
+app.set('trust proxy', true);
+
 app.use(cors());
 app.use(express.json());
 
 // Alustetaan Gemini API Renderin GEMINI_API_KEY -ympäristömuuttujalla
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// ==========================================
+// 0. IP BANNING MIDDLEWARE (Bannitarkistus)
+// ==========================================
+const getBannedIPs = () => {
+    const raw = process.env.BANNED_IPS || "";
+    return new Set(raw.split(',').map(ip => ip.trim()).filter(Boolean));
+};
+
+app.use((req, res, next) => {
+    const clientIp = req.ip || req.connection.remoteAddress;
+    const bannedIPs = getBannedIPs();
+
+    if (bannedIPs.has(clientIp)) {
+        return res.status(403).json({ error: "Access Denied: You are banned from this site." });
+    }
+
+    next();
+});
 
 // ==========================================
 // 1. LOBBIES / TOURNAMENTS API
@@ -129,3 +151,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Palvelin käynnissä portissa ${PORT}`);
 });
+
