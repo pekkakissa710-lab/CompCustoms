@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMPCUSTOMS - My Profile</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans flex flex-col justify-between">
+
+    <div class="max-w-xl mx-auto px-4 py-16 w-full space-y-8">
+        <div class="flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-2 text-slate-400 hover:text-white text-xs font-semibold uppercase tracking-wider">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Back to Hub</span>
+            </a>
+            <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">User Dashboard</span>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
+            <div class="flex items-center space-x-4">
+                <div id="profile-initial" class="w-16 h-16 rounded-2xl bg-blue-600 border border-blue-400 flex items-center justify-center text-2xl font-black text-white uppercase">
+                    U
+                </div>
+                <div>
+                    <h1 id="profile-username" class="text-2xl font-black text-white">Loading...</h1>
+                    <p class="text-xs text-slate-400">Verified CompCustoms Player</p>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800 pt-6 space-y-4">
+                <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Epic Account Ownership Verification</span>
+                    <p class="text-xs text-slate-400">Status: <span class="text-amber-400 font-semibold">Not Verified (Screenshot check coming soon)</span></p>
+                </div>
+            </div>
+
+            <button onclick="logout()" class="w-full py-3 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 font-bold rounded-xl text-sm transition-all">
+                Sign Out
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const username = localStorage.getItem('epic_username') || 'Player';
+        document.getElementById('profile-username').textContent = username;
+        document.getElementById('profile-initial').textContent = username.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.removeItem('epic_authenticated');
+            localStorage.removeItem('epic_username');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
+
