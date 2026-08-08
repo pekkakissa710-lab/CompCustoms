@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - COMPCUSTOMS</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            purple: '#7928CA',
+                            darkBg: '#050B14',
+                            cardBg: '#0D1527',
+                            border: '#1E293B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+    <nav class="sticky top-0 z-40 backdrop-blur-md bg-[#050B14]/80 border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                <a href="/" class="flex items-center space-x-3 group shrink-0">
+                    <img src="logo.png" alt="Logo" class="w-8 h-8 rounded-lg shrink-0">
+                    <span class="text-xl sm:text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-blue-400">
+                        COMP<span class="text-blue-500">CUSTOMS</span>
+                    </span>
+                </a>
+
+                <div class="shrink-0 flex items-center gap-3">
+                    <a href="/" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm tracking-wide transition-all">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Back to Hub</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-8">
+        <div class="space-y-3 border-b border-slate-800 pb-6">
+            <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Terms of Service</h1>
+            <p class="text-sm text-slate-400">Last updated: February 2026</p>
+        </div>
+
+        <div class="space-y-6 text-slate-300 text-sm sm:text-base leading-relaxed bg-slate-900/40 border border-slate-800/80 p-6 sm:p-8 rounded-2xl">
+            <section class="space-y-2">
+                <h2 class="text-lg font-bold text-white">1. Acceptance of Terms</h2>
+                <p>By accessing or using CompCustoms, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our platform.</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="text-lg font-bold text-white">2. User Conduct & Fair Play</h2>
+                <p>Users must adhere to competitive integrity at all times. The following actions are strictly prohibited and will result in a permanent ban from custom lobbies:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-400 pl-2">
+                    <li>Sharing custom lobby keys with unauthorized players or third parties.</li>
+                    <li>Cheating, hacking, exploiting, or teaming during matches.</li>
+                    <li>Harassing, abusing, or exhibiting toxic behavior toward other participants.</li>
+                </ul>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="text-lg font-bold text-white">3. Third-Party Disclaimer</h2>
+                <p>CompCustoms is an independent competitive scrim platform and is not affiliated with, sponsored by, or endorsed by Epic Games Inc. Fortnite is a registered trademark of Epic Games Inc.</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="text-lg font-bold text-white">4. Service Availability & Modifications</h2>
+                <p>We reserve the right to modify, suspend, or discontinue any aspect of our service at any time without prior notice. We are not liable for any downtime or inability to access custom keys.</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="text-lg font-bold text-white">5. Account Termination</h2>
+                <p>We reserve the right to terminate or restrict access to any user found violating these terms without notice or liability.</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="text-lg font-bold text-white">6. Contact & Inquiries</h2>
+                <p>For any questions regarding these Terms of Service, please visit our support page at <a href="https://compcustoms.my.to/support" class="text-blue-400 hover:underline">compcustoms.my.to/support</a>.</p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="border-t border-slate-800/80 bg-black/40 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <p>&copy; 2026 CompCustoms. All rights reserved. Not affiliated with Epic Games.</p>
+            
+            <div class="flex items-center space-x-6 font-semibold">
+                <a href="https://compcustoms.my.to/privacy" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Privacy Policy</a>
+                <a href="https://compcustoms.my.to/tos" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Terms of Service</a>
+                <a href="https://compcustoms.my.to/support" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+
