@@ -27,6 +27,25 @@
 </head>
 <body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
+    <div id="banned-screen" class="fixed inset-0 bg-[#050B14] z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 shadow-2xl text-center space-y-6">
+            <div class="w-16 h-16 bg-red-600/20 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto text-red-400 shadow-inner">
+                <i data-lucide="shield-alert" class="w-8 h-8"></i>
+            </div>
+            <div class="space-y-2">
+                <h1 class="text-2xl font-black text-white tracking-wide">Access Denied</h1>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    You are banned from this site.
+                </p>
+            </div>
+            <div class="pt-2">
+                <div class="px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-500">
+                    Error Code: 403_IP_BANNED
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="lobby-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 relative shadow-2xl space-y-6">
             <button onclick="closeLobbyModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
@@ -184,6 +203,20 @@
         let username = localStorage.getItem('epic_username') || '';
         let currentLobbies = [];
 
+        // Tarkistetaan banni-statukset backendistä
+        async function checkBanStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/api/tournaments`);
+                if (res.status === 403) {
+                    document.getElementById('banned-screen').classList.remove('hidden');
+                    return true;
+                }
+            } catch (err) {
+                // Jos palvelin on offline tai tulee banni-responsi
+            }
+            return false;
+        }
+
         function updateAuthStateUI() {
             const btnText = document.getElementById('epic-btn-text');
             const iconContainer = document.getElementById('epic-icon-container');
@@ -267,6 +300,10 @@
         async function probeLobbies() {
             try {
                 const res = await fetch(`${API_BASE}/api/tournaments`);
+                if (res.status === 403) {
+                    document.getElementById('banned-screen').classList.remove('hidden');
+                    return;
+                }
                 if (!res.ok) throw new Error('Offline');
                 currentLobbies = await res.json();
 
@@ -358,7 +395,13 @@
             document.getElementById('lobby-modal').classList.add('hidden');
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            
+            // Tarkistetaan banni heti ensi töiksi
+            const isBanned = await checkBanStatus();
+            if (isBanned) return;
+
             updateAuthStateUI();
             handleAuthCallback();
             probeLobbies();
@@ -374,4 +417,3 @@
     </script>
 </body>
 </html>
-
