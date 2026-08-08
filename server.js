@@ -13,7 +13,6 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // ==========================================
 // 1. LOBBIES / TOURNAMENTS API
 // ==========================================
-// Tässä on esimerkkilobbyt, voit muokata näitä tarpeen mukaan
 const mockLobbies = [
     {
         id: "1",
@@ -42,7 +41,21 @@ app.get('/api/tournaments', (req, res) => {
 });
 
 // ==========================================
-// 2. EPIC GAMES AUTHENTICATION API
+// 2. ADMIN LOGIN API (Tämä puuttui aiemmin!)
+// ==========================================
+app.post('/api/admin/login', (req, res) => {
+    const { secret } = req.body;
+    
+    // Tarkistetaan, että salasana täsmää Renderin EPIC_CLIENT_SECRET -muuttujaan
+    if (secret && secret === process.env.EPIC_CLIENT_SECRET) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ success: false, error: "Invalid Admin Secret!" });
+    }
+});
+
+// ==========================================
+// 3. EPIC GAMES AUTHENTICATION API
 // ==========================================
 const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID || "your_epic_client_id";
 const EPIC_CLIENT_SECRET = process.env.EPIC_CLIENT_SECRET || "your_epic_client_secret";
@@ -63,8 +76,6 @@ app.post('/api/auth/callback', async (req, res) => {
     }
 
     try {
-        // Tässä kohtaa vaihdetaan koodi access tokeniin ja haetaan käyttäjän tiedot Epic Gamesilta
-        // Esimerkkivastaus (korvaa tämä omalla Epic API -kutsullasi tarvittaessa):
         res.json({
             success: true,
             username: "Player123"
@@ -76,7 +87,7 @@ app.post('/api/auth/callback', async (req, res) => {
 });
 
 // ==========================================
-// 3. GEMINI AI SUPPORT CHATBOT API
+// 4. GEMINI AI SUPPORT CHATBOT API
 // ==========================================
 app.post('/api/chat', async (req, res) => {
     try {
