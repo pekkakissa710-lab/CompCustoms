@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - COMPCUSTOMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            purple: '#7928CA',
+                            darkBg: '#050B14',
+                            cardBg: '#0D1527',
+                            border: '#1E293B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+    <nav class="sticky top-0 z-40 backdrop-blur-md bg-[#050B14]/80 border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="/" class="inline-flex items-center gap-3 text-slate-300 hover:text-white transition-colors group">
+                    <div class="p-2 bg-slate-900 border border-slate-800 rounded-xl group-hover:border-slate-700 transition-all">
+                        <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform"></i>
+                    </div>
+                    <span class="text-sm font-bold tracking-wide">Back to Home</span>
+                </a>
+
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl shadow-lg shadow-blue-500/30">
+                        <i data-lucide="crosshair" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="text-lg font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-blue-400">
+                        COMP<span class="text-blue-500">CUSTOMS</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full flex-grow">
+        <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 sm:p-10 space-y-8 backdrop-blur-sm">
+            
+            <div class="space-y-3 border-b border-slate-800/80 pb-6">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold uppercase tracking-wider">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    <span>Legal</span>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-black text-white">Privacy Policy</h1>
+                <p class="text-slate-400 text-sm">Last updated: 2026</p>
+            </div>
+
+            <div class="space-y-6 text-slate-300 text-sm leading-relaxed">
+                <section class="space-y-2">
+                    <h2 class="text-lg font-bold text-white">1. Information We Collect</h2>
+                    <p class="text-slate-400">
+                        CompCustoms collects minimal information required to provide match keys and custom scrim services. When you log in via Epic Games OAuth, we retrieve your Epic Account ID and display name to identify you within our platform.
+                    </p>
+                </section>
+
+                <section class="space-y-2">
+                    <h2 class="text-lg font-bold text-white">2. How We Use Information</h2>
+                    <p class="text-slate-400">
+                        Your information is strictly used for authentication, managing custom lobbies, displaying leaderboards, and maintaining competitive integrity (such as preventing bans or restricted IP access).
+                    </p>
+                </section>
+
+                <section class="space-y-2">
+                    <h2 class="text-lg font-bold text-white">3. Data Sharing & Security</h2>
+                    <p class="text-slate-400">
+                        We do not sell or share your personal data with third parties. All access tokens and account identification data are stored securely.
+                    </p>
+                </section>
+
+                <section class="space-y-2">
+                    <h2 class="text-lg font-bold text-white">4. Affiliation Disclaimer</h2>
+                    <p class="text-slate-400">
+                        CompCustoms is an independent platform and is not affiliated with, endorsed, or sponsored by Epic Games, Inc.
+                    </p>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="border-t border-slate-800/80 bg-black/40 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+                <p>&copy; 2026 CompCustoms. All rights reserved. Not affiliated with Epic Games.</p>
+                <div class="flex items-center space-x-6">
+                    <a href="/privacy" class="text-slate-300 font-semibold">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+
