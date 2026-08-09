@@ -87,7 +87,7 @@ app.get('/api/tournaments', (req, res) => {
 app.post('/api/tournaments', (req, res) => {
     const { secret, name, customCode, startTime, teamSize, mode, submode, description } = req.body;
 
-    if (secret !== process.env.EPIC_CLIENT_SECRET && secret !== "THESECRETHUB") {
+    if (secret !== process.env.EPIC_CLIENT_SECRET) {
         return res.status(403).json({ error: "Invalid secret" });
     }
 
@@ -109,13 +109,26 @@ app.post('/api/tournaments', (req, res) => {
 
 app.delete('/api/tournaments/:id', (req, res) => {
     const { secret } = req.body;
-    if (secret !== process.env.EPIC_CLIENT_SECRET && secret !== "THESECRETHUB") {
+    if (secret !== process.env.EPIC_CLIENT_SECRET) {
         return res.status(403).json({ error: "Invalid secret" });
     }
 
     const id = req.params.id;
     lobbies = lobbies.filter(l => l.id !== id);
     res.json({ success: true });
+});
+
+// ==========================================
+// ADMIN LOGIN
+// ==========================================
+app.post('/api/admin/login', (req, res) => {
+    const { secret } = req.body;
+
+    if (secret === process.env.EPIC_CLIENT_SECRET) {
+        return res.json({ success: true });
+    }
+
+    return res.status(403).json({ error: "Invalid secret" });
 });
 
 // ==========================================
@@ -161,7 +174,7 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // ==========================================
-// AI CHAT (stronger prompt injection)
+// AI CHAT
 // ==========================================
 app.post('/api/chat', async (req, res) => {
     try {
@@ -172,7 +185,6 @@ app.post('/api/chat', async (req, res) => {
             model: "gemini-3.5-flash-lite"
         });
 
-        // Force the persona by putting the instructions directly in the prompt
         const fullPrompt = `You are the official CompCustoms support bot on compcustoms.my.to.
 
 CompCustoms is a Fortnite competitive customs website. Players create accounts, join custom scrims and get custom matchmaking keys.
