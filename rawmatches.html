@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raw Matches - COMPCUSTOMS</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0a0a0a;
+            color: #e2e8f0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 1.5rem;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <pre id="output">[]</pre>
+
+    <script>
+        const API_BASE = "https://compcustoms-api.onrender.com";
+
+        async function loadMatches() {
+            const output = document.getElementById('output');
+
+            try {
+                const res = await fetch(`${API_BASE}/api/tournaments`, { cache: 'no-store' });
+
+                if (!res.ok) {
+                    output.textContent = '[]';
+                    return;
+                }
+
+                const lobbies = await res.json();
+
+                const matches = (Array.isArray(lobbies) ? lobbies : []).map(l => ({
+                    id: l.id || null,
+                    name: l.name || null,
+                    customCode: l.customCode || null,
+                    teamSize: (l.teamSize || 'SOLO').toUpperCase(),
+                    builds: normalizeBuilds(l.submode),
+                    region: (l.region || 'EU').toUpperCase(),
+                    mode: (l.mode || 'BATTLE ROYALE').toUpperCase(),
+                    startTime: l.startTime || null,
+                    description: l.description || null,
+                    createdAt: l.createdAt || null
+                }));
+
+                output.textContent = JSON.stringify(matches, null, 2);
+            } catch (err) {
+                output.textContent = '[]';
+                console.error(err);
+            }
+        }
+
+        function normalizeBuilds(submode) {
+            if (!submode) return 'builds';
+            const s = String(submode).toLowerCase();
+            if (s.includes('zero')) return 'zero_builds';
+            return 'builds';
+        }
+
+        loadMatches();
+        setInterval(loadMatches, 30000);
+    </script>
+</body>
+</html>
