@@ -186,7 +186,7 @@
 
         async function checkBanStatus() {
             try {
-                const res = await fetch(`${API_BASE}/api/tournaments`);
+                const res = await fetch(API_BASE + '/api/tournaments');
                 if (res.status === 403) {
                     window.location.href = 'banned.html';
                     return true;
@@ -203,22 +203,14 @@
             if (isAuthenticated && username) {
                 btnText.textContent = username;
                 const firstLetter = username.charAt(0).toUpperCase();
-                iconContainer.innerHTML = `
-                    <div class="w-5 h-5 rounded-full bg-blue-600 border border-blue-400 flex items-center justify-center text-[10px] font-black text-white leading-none uppercase shrink-0">
-                        ${firstLetter}
-                    </div>
-                `;
-                loginBtn.onclick = () => {
+                iconContainer.innerHTML = '<div class="w-5 h-5 rounded-full bg-blue-600 border border-blue-400 flex items-center justify-center text-[10px] font-black text-white leading-none uppercase shrink-0">' + firstLetter + '</div>';
+                loginBtn.onclick = function () {
                     window.location.href = 'myprofile.html';
                 };
             } else {
                 btnText.textContent = "Sign In / Register";
-                iconContainer.innerHTML = `
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current shrink-0" viewBox="0 0 24 24">
-                        <path d="M12 0L1.75 3.87v10.51C1.75 18.97 12 24 12 24s10.25-5.03 10.25-9.62V3.87L12 0zm6.8 13.5c0 3.1-6.8 6.9-6.8 6.9s-6.8-3.8-6.8-6.9V5.7l6.8-2.6 6.8 2.6v7.8z"/>
-                    </svg>
-                `;
-                loginBtn.onclick = () => {
+                iconContainer.innerHTML = '<svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 0L1.75 3.87v10.51C1.75 18.97 12 24 12 24s10.25-5.03 10.25-9.62V3.87L12 0zm6.8 13.5c0 3.1-6.8 6.9-6.8 6.9s-6.8-3.8-6.8-6.9V5.7l6.8-2.6 6.8 2.6v7.8z"/></svg>';
+                loginBtn.onclick = function () {
                     window.location.href = 'login.html';
                 };
             }
@@ -243,15 +235,15 @@
             let relativeStr = "";
             if (diffDays === 0) relativeStr = "(TODAY)";
             else if (diffDays === 1) relativeStr = "(TOMORROW)";
-            else if (diffDays > 1) relativeStr = `(IN ${diffDays} DAYS)`;
+            else if (diffDays > 1) relativeStr = "(IN " + diffDays + " DAYS)";
             else relativeStr = "(ENDED)";
 
-            return `${dayName} \( {dayNum}. \){monthNum} at \( {hours}: \){mins} ${relativeStr}`;
+            return dayName + " " + dayNum + "." + monthNum + " at " + hours + ":" + mins + " " + relativeStr;
         }
 
         async function probeLobbies() {
             try {
-                const res = await fetch(`${API_BASE}/api/tournaments`);
+                const res = await fetch(API_BASE + '/api/tournaments');
                 if (res.status === 403) {
                     window.location.href = 'banned.html';
                     return;
@@ -273,31 +265,35 @@
                     return;
                 }
 
-                currentLobbies.forEach((lobby, index) => {
+                currentLobbies.forEach(function (lobby, index) {
                     const timeFormatted = formatLocalTime(lobby.startTime);
                     const item = document.createElement('div');
                     item.className = 'bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4';
                     
                     const tagClass = "px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-extrabold rounded-md uppercase tracking-wider";
+                    const team = lobby.teamSize || 'SOLO';
+                    const mode = lobby.mode || 'BR';
+                    const submode = lobby.submode || 'BUILDS';
+                    const name = lobby.name || 'Unnamed';
 
-                    item.innerHTML = `
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2">
-                                <span class="\( {tagClass}"> \){lobby.teamSize || 'SOLO'}</span>
-                                <span class="\( {tagClass}"> \){lobby.mode || 'BR'}</span>
-                                <span class="\( {tagClass}"> \){lobby.submode || 'BUILDS'}</span>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-white">${lobby.name}</h3>
-                                <p class="text-xs font-semibold text-blue-400 mt-0.5">📅 ${timeFormatted}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 shrink-0">
-                            <button onclick="openLobbyModal(${index})" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20">
-                                View Lobby
-                            </button>
-                        </div>
-                    `;
+                    item.innerHTML =
+                        '<div class="space-y-2">' +
+                            '<div class="flex items-center gap-2">' +
+                                '<span class="' + tagClass + '">' + team + '</span>' +
+                                '<span class="' + tagClass + '">' + mode + '</span>' +
+                                '<span class="' + tagClass + '">' + submode + '</span>' +
+                            '</div>' +
+                            '<div>' +
+                                '<h3 class="text-lg font-bold text-white">' + name + '</h3>' +
+                                '<p class="text-xs font-semibold text-blue-400 mt-0.5">📅 ' + timeFormatted + '</p>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="flex items-center gap-3 shrink-0">' +
+                            '<button onclick="openLobbyModal(' + index + ')" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20">' +
+                                'View Lobby' +
+                            '</button>' +
+                        '</div>';
+
                     container.appendChild(item);
                 });
 
@@ -315,7 +311,7 @@
             if (!lobby) return;
 
             document.getElementById('lm-title').textContent = lobby.name;
-            document.getElementById('lm-time-tag').textContent = `📅 ${formatLocalTime(lobby.startTime)}`;
+            document.getElementById('lm-time-tag').textContent = '📅 ' + formatLocalTime(lobby.startTime);
             document.getElementById('lm-team').textContent = lobby.teamSize || 'SOLO';
             document.getElementById('lm-mode').textContent = lobby.mode || 'BATTLE ROYALE';
             document.getElementById('lm-submode').textContent = lobby.submode || 'BUILDS';
@@ -335,7 +331,7 @@
                 codeElem.className = "font-mono text-lg font-bold tracking-widest text-slate-500";
                 actionBtn.textContent = "Sign in to view code";
                 actionBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white cursor-pointer transition-all";
-                actionBtn.onclick = () => {
+                actionBtn.onclick = function () {
                     window.location.href = 'login.html';
                 };
             }
@@ -347,7 +343,7 @@
             document.getElementById('lobby-modal').classList.add('hidden');
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', async function () {
             lucide.createIcons();
             
             const isBanned = await checkBanStatus();
