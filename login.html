@@ -30,24 +30,14 @@
         </div>
 
         <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
-            <div id="email-field">
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Email</label>
-                <input type="email" id="input-email" required placeholder="name@example.com" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-            </div>
-
-            <div id="username-field" class="hidden">
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Epic Username</label>
-                <input type="text" id="input-username" placeholder="YourIngameName" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            <div id="username-field">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Username</label>
+                <input type="text" id="input-username" required placeholder="YourUsername" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             </div>
 
             <div id="password-field-container">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Password</label>
                 <input type="password" id="input-password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-            </div>
-
-            <div id="code-field" class="hidden">
-                <label class="block text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">Verification Code</label>
-                <input type="text" id="input-code" maxlength="6" placeholder="123456" class="w-full px-4 py-2.5 bg-slate-950 border border-blue-500 rounded-xl text-white text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
             </div>
 
             <button type="submit" id="submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">
@@ -63,7 +53,6 @@
         const getAPIBase = () => {
             const protocol = window.location.protocol;
             const host = window.location.host;
-            // Use same origin by default, fallback to hardcoded URL
             if (host.includes('localhost') || host.includes('127.0.0.1')) {
                 return `http://${host}`;
             }
@@ -72,29 +61,22 @@
         
         const API_BASE = getAPIBase();
         let currentMode = 'login';
-        let awaitingVerification = false;
 
         function switchTab(mode) {
-            if (awaitingVerification) return;
             currentMode = mode;
             const title = document.getElementById('form-title');
-            const userField = document.getElementById('username-field');
             const submitBtn = document.getElementById('submit-btn');
             const tabLogin = document.getElementById('tab-login');
             const tabRegister = document.getElementById('tab-register');
 
             if (mode === 'login') {
                 title.textContent = "Welcome Back";
-                userField.classList.add('hidden');
-                document.getElementById('input-username').required = false;
                 submitBtn.textContent = "Login";
                 tabLogin.className = "px-3 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all";
                 tabRegister.className = "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all";
             } else {
                 title.textContent = "Create Account";
-                userField.classList.remove('hidden');
-                document.getElementById('input-username').required = true;
-                submitBtn.textContent = "Register & Send Email";
+                submitBtn.textContent = "Register";
                 tabRegister.className = "px-3 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all";
                 tabLogin.className = "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all";
             }
@@ -102,62 +84,27 @@
 
         async function handleAuthSubmit(e) {
             e.preventDefault();
-            const email = document.getElementById('input-email').value;
+            const username = document.getElementById('input-username').value;
             const password = document.getElementById('input-password').value;
-            const epicUsername = document.getElementById('input-username').value;
-            const code = document.getElementById('input-code').value;
 
             try {
-                if (awaitingVerification) {
-                    const res = await fetch(`${API_BASE}/api/auth/verify`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, code })
-                    });
-                    const data = await res.json();
+                const endpoint = currentMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+                const payload = { username, password };
 
-                    if (data.success) {
-                        localStorage.setItem('epic_authenticated', 'true');
-                        localStorage.setItem('epic_username', data.username);
-                        window.location.href = 'index.html';
-                    } else {
-                        alert(data.message || "Invalid verification code.");
-                    }
+                const res = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('epic_authenticated', 'true');
+                    localStorage.setItem('epic_username', username);
+                    window.location.href = 'index.html';
                 } else {
-                    const endpoint = currentMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-                    const payload = currentMode === 'login' ? { email, password } : { email, epicUsername, password };
-
-                    const res = await fetch(`${API_BASE}${endpoint}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const data = await res.json();
-
-                    if (data.success) {
-                        if (currentMode === 'register' && data.requireVerification) {
-                            awaitingVerification = true;
-                            document.getElementById('form-title').textContent = "Verify Email";
-                            document.getElementById('form-desc').textContent = "Put here the 6 digit code that was sent to your email.";
-                            document.getElementById('form-desc').className = "text-xs text-blue-400 font-semibold bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-xl leading-relaxed";
-                            
-                            document.getElementById('email-field').style.opacity = '0.5';
-                            document.getElementById('input-email').readOnly = true;
-                            document.getElementById('username-field').classList.add('hidden');
-                            document.getElementById('password-field-container').classList.add('hidden');
-                            document.getElementById('code-field').classList.remove('hidden');
-                            document.getElementById('tabs-container').classList.add('hidden');
-                            
-                            document.getElementById('submit-btn').textContent = "Verify & Login";
-                        } else {
-                            localStorage.setItem('epic_authenticated', 'true');
-                            localStorage.setItem('epic_username', data.username || epicUsername);
-                            window.location.href = 'index.html';
-                        }
-                    } else {
-                        alert(data.message || "An error occurred.");
-                    }
+                    alert(data.message || "An error occurred.");
                 }
             } catch (err) {
                 alert("Connection error. Make sure the backend server is running.");
