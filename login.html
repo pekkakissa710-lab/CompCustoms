@@ -7,11 +7,24 @@
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(148, 163, 184, 0.25);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex items-center justify-center p-4">
 
     <!-- Normal popup -->
-    <div id="popup-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="popup-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
             <div id="popup-icon" class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center"></div>
             <p id="popup-message" class="text-sm text-slate-300 leading-relaxed"></p>
@@ -19,6 +32,13 @@
                 OK
             </button>
         </div>
+    </div>
+
+    <!-- Loading overlay (spinning) -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] hidden flex flex-col items-center justify-center p-4 gap-4">
+        <div class="spinner"></div>
+        <p class="text-sm text-slate-300 font-medium">Reviewing screenshot...</p>
+        <p class="text-xs text-slate-500">AI is checking your Fortnite profile</p>
     </div>
 
     <!-- Prove account modal -->
@@ -55,12 +75,21 @@
                 </div>
             </div>
 
-            <!-- Upload -->
+            <!-- Upload + preview -->
             <div class="space-y-2">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Your screenshot</label>
-                <input type="file" id="proof-image" accept="image/*" capture="environment"
+                <!-- EI capture-attribuuttia → puhelimella tiedostot / galleria vaihtoehto -->
+                <input type="file" id="proof-image" accept="image/*"
                        class="w-full text-sm text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-600 file:text-white file:font-bold file:text-xs file:cursor-pointer hover:file:bg-blue-500 bg-slate-950 border border-slate-800 rounded-xl p-2">
-                <p id="proof-filename" class="text-xs text-slate-500 truncate"></p>
+                
+                <!-- Pieni esikatselu valitusta kuvasta -->
+                <div id="proof-preview-wrap" class="hidden mt-2">
+                    <p class="text-[11px] text-slate-500 mb-1.5">Selected image:</p>
+                    <div class="flex items-center gap-3 p-2 bg-slate-950 border border-slate-800 rounded-xl">
+                        <img id="proof-preview" src="" alt="Preview" class="w-16 h-16 object-cover rounded-lg border border-slate-700 shrink-0">
+                        <p id="proof-filename" class="text-xs text-slate-400 truncate flex-1"></p>
+                    </div>
+                </div>
             </div>
 
             <!-- Checkbox -->
@@ -148,6 +177,14 @@
             document.getElementById('popup-overlay').classList.add('hidden');
         }
 
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
         function switchTab(mode) {
             currentMode = mode;
             const title = document.getElementById('form-title');
@@ -171,6 +208,8 @@
         function openProveModal() {
             document.getElementById('proof-image').value = '';
             document.getElementById('proof-filename').textContent = '';
+            document.getElementById('proof-preview-wrap').classList.add('hidden');
+            document.getElementById('proof-preview').src = '';
             document.getElementById('proof-agree').checked = false;
             document.getElementById('prove-overlay').classList.remove('hidden');
             lucide.createIcons();
@@ -180,9 +219,24 @@
             document.getElementById('prove-overlay').classList.add('hidden');
         }
 
+        // Kuvan valinta → esikatselu
         document.getElementById('proof-image').addEventListener('change', (e) => {
             const file = e.target.files[0];
-            document.getElementById('proof-filename').textContent = file ? file.name : '';
+            const wrap = document.getElementById('proof-preview-wrap');
+            const preview = document.getElementById('proof-preview');
+            const nameEl = document.getElementById('proof-filename');
+
+            if (!file) {
+                wrap.classList.add('hidden');
+                preview.src = '';
+                nameEl.textContent = '';
+                return;
+            }
+
+            nameEl.textContent = file.name;
+            const url = URL.createObjectURL(file);
+            preview.src = url;
+            wrap.classList.remove('hidden');
         });
 
         async function handleAuthSubmit(e) {
@@ -246,14 +300,13 @@
                 return;
             }
 
-            // Max \~4 MB
             if (file.size > 4 * 1024 * 1024) {
                 showPopup("Image is too large. Max 4 MB.", 'error');
                 return;
             }
 
             btn.disabled = true;
-            btn.textContent = "Reviewing...";
+            showLoading();
 
             try {
                 const base64 = await fileToBase64(file);
@@ -272,6 +325,8 @@
 
                 const data = await res.json();
 
+                hideLoading();
+
                 if (data.success) {
                     closeProveModal();
                     localStorage.setItem('epic_authenticated', 'true');
@@ -284,11 +339,11 @@
                     showPopup(data.message || "Verification failed. Try a clearer screenshot.", 'error');
                 }
             } catch (err) {
+                hideLoading();
                 showPopup("Connection error during verification.", 'error');
                 console.error(err);
             } finally {
                 btn.disabled = false;
-                btn.textContent = "Submit for review";
             }
         }
 
@@ -296,7 +351,6 @@
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => {
-                    // remove data:image/...;base64, prefix
                     const result = reader.result;
                     const base64 = result.split(',')[1] || result;
                     resolve(base64);
