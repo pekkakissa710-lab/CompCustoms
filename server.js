@@ -111,18 +111,25 @@ app.post('/api/tournaments', (req, res) => {
 // ==========================================
 // 2. AUTHENTICATION & EMAIL VERIFICATION
 // ==========================================
+
+// Support both EMAIL_USER/EMAIL_PASS and GMAIL_USER/GMAIL_PASS
+const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER;
+const emailPass = process.env.EMAIL_PASS || process.env.GMAIL_PASS;
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: emailUser,
+        pass: emailPass
     }
 });
 
 // Check email connectivity on startup
 transporter.verify((error, success) => {
     if (error) {
-        console.warn("⚠️  Email service not configured. Email verification will not work.");
+        console.warn("⚠️  Email service not configured.");
+        console.warn("   Set EMAIL_USER and EMAIL_PASS (or GMAIL_USER and GMAIL_PASS)");
+        console.warn("   Email verification will not work without these.");
     } else {
         console.log("✓ Email service ready");
     }
@@ -140,6 +147,11 @@ app.post('/api/auth/register', async (req, res) => {
         return res.status(400).json({ success: false, message: "Email or Epic username already in use." });
     }
 
+    // Check if email is configured
+    if (!emailUser || !emailPass) {
+        return res.status(500).json({ success: false, message: "Email service not configured on server. Contact admin." });
+    }
+
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     pendingVerification.set(email, { email, epicUsername, password, verificationCode });
 
@@ -153,8 +165,8 @@ app.post('/api/auth/register', async (req, res) => {
         });
         res.json({ success: true, requireVerification: true, message: "Verification code sent to your email!" });
     } catch (error) {
-        console.error("Email sending failed:", error);
-        res.status(500).json({ success: false, message: "Email sending failed. Please try again later." });
+        console.error("Email sending failed:", error.message);
+        res.status(500).json({ success: false, message: `Email sending failed: ${error.message}` });
     }
 });
 
@@ -220,7 +232,12 @@ app.post('/api/chat', async (req, res) => {
 // Health check endpoint
 // ==========================================
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString(), usersCount: usersDatabase.length });
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(), 
+        usersCount: usersDatabase.length,
+        emailConfigured: !!(emailUser && emailPass)
+    });
 });
 
 const PORT = process.env.PORT || 3000;
