@@ -7,116 +7,24 @@
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(148, 163, 184, 0.25);
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-    </style>
 </head>
 <body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex items-center justify-center p-4">
 
-    <!-- Normal popup -->
-    <div id="popup-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+    <div id="popup-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
             <div id="popup-icon" class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center"></div>
             <p id="popup-message" class="text-sm text-slate-300 leading-relaxed"></p>
-            <button onclick="closePopup()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all">
-                OK
-            </button>
+            <button onclick="closePopup()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all">OK</button>
         </div>
     </div>
 
-    <!-- Loading overlay (spinning) -->
-    <div id="loading-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] hidden flex flex-col items-center justify-center p-4 gap-4">
-        <div class="spinner"></div>
-        <p class="text-sm text-slate-300 font-medium">Reviewing screenshot...</p>
-        <p class="text-xs text-slate-500">AI is checking your Fortnite profile</p>
-    </div>
-
-    <!-- Prove account modal -->
-    <div id="prove-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 my-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-black text-white tracking-wide">Prove it's your account</h2>
-                <button onclick="closeProveModal()" class="text-slate-400 hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="space-y-3 text-sm text-slate-300 leading-relaxed">
-                <p class="font-semibold text-slate-200">How to take the screenshot:</p>
-                <ol class="list-decimal list-inside space-y-1.5 text-slate-400 text-xs sm:text-sm">
-                    <li>Open <strong class="text-white">Fortnite</strong></li>
-                    <li>Press <strong class="text-white">ESC</strong></li>
-                    <li>Click your <strong class="text-white">profile</strong> (top left / your name)</li>
-                    <li>Take a screenshot that clearly shows your <strong class="text-white">display name</strong></li>
-                </ol>
-            </div>
-
-            <!-- Example image -->
-            <div class="space-y-2">
-                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Example (what it should look like)</p>
-                <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
-                    <img src="assets/example-fortnite-profile.png" alt="Example Fortnite profile screenshot"
-                         class="w-full h-auto object-cover max-h-48"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="hidden flex-col items-center justify-center p-8 text-center text-slate-500 text-xs gap-2">
-                        <i data-lucide="image" class="w-8 h-8 opacity-50"></i>
-                        <span>Add <code class="text-slate-400">assets/example-fortnite-profile.png</code></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Upload + preview -->
-            <div class="space-y-2">
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Your screenshot</label>
-                <!-- EI capture-attribuuttia → puhelimella tiedostot / galleria vaihtoehto -->
-                <input type="file" id="proof-image" accept="image/*"
-                       class="w-full text-sm text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-600 file:text-white file:font-bold file:text-xs file:cursor-pointer hover:file:bg-blue-500 bg-slate-950 border border-slate-800 rounded-xl p-2">
-                
-                <!-- Pieni esikatselu valitusta kuvasta -->
-                <div id="proof-preview-wrap" class="hidden mt-2">
-                    <p class="text-[11px] text-slate-500 mb-1.5">Selected image:</p>
-                    <div class="flex items-center gap-3 p-2 bg-slate-950 border border-slate-800 rounded-xl">
-                        <img id="proof-preview" src="" alt="Preview" class="w-16 h-16 object-cover rounded-lg border border-slate-700 shrink-0">
-                        <p id="proof-filename" class="text-xs text-slate-400 truncate flex-1"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Checkbox -->
-            <label class="flex items-start gap-3 cursor-pointer select-none">
-                <input type="checkbox" id="proof-agree" class="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-950 text-blue-600 focus:ring-blue-500">
-                <span class="text-xs text-slate-400 leading-relaxed">
-                    I confirm this is a real screenshot of <strong class="text-white">my own</strong> Fortnite profile.
-                    I will not fake, edit or use someone else's account. False verification = permanent ban.
-                </span>
-            </label>
-
-            <button id="prove-submit-btn" onclick="submitProof()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                Submit for review
-            </button>
-
-            <p class="text-[11px] text-slate-500 text-center">AI will check the image. This may take a few seconds.</p>
-        </div>
-    </div>
-
-    <!-- Main form card -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 shadow-2xl space-y-6">
         <div class="flex items-center justify-between">
             <a href="index.html" class="flex items-center space-x-2 text-slate-400 hover:text-white text-xs font-semibold uppercase tracking-wider">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 <span>Back to Hub</span>
             </a>
-            <div id="tabs-container" class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
                 <button onclick="switchTab('login')" id="tab-login" class="px-3 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all">Login</button>
                 <button onclick="switchTab('register')" id="tab-register" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all">Register</button>
             </div>
@@ -124,43 +32,37 @@
 
         <div class="space-y-1">
             <h1 id="form-title" class="text-2xl font-black text-white tracking-wide">Welcome Back</h1>
-            <p id="form-desc" class="text-xs text-amber-400 font-semibold bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl leading-relaxed">
+            <p class="text-xs text-amber-400 font-semibold bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl leading-relaxed">
                 ⚠️ For your safety, don't use your Epic password here!
+            </p>
+            <p id="display-name-warning" class="hidden text-xs text-red-400 font-semibold bg-red-500/10 border border-red-500/20 p-2.5 rounded-xl leading-relaxed">
+                Please use your actual EPIC GAMES display name. Using someone else's display name won't benefit you in any way and results in a ban.
             </p>
         </div>
 
         <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
-            <div id="username-field">
+            <div>
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Username</label>
-                <input type="text" id="input-username" required placeholder="YourUsername" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                <input type="text" id="input-username" required placeholder="Your Epic display name" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             </div>
-
-            <div id="password-field-container">
+            <div>
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Password</label>
                 <input type="password" id="input-password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             </div>
-
-            <button type="submit" id="submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">
-                Login
-            </button>
+            <button type="submit" id="submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">Login</button>
         </form>
     </div>
 
     <script>
         lucide.createIcons();
-
         const API_BASE = "https://compcustoms-api.onrender.com";
         let currentMode = 'login';
-        let pendingUsername = '';
-        let pendingPassword = '';
 
-        function showPopup(message, type = 'error') {
-            const overlay = document.getElementById('popup-overlay');
-            const msgEl = document.getElementById('popup-message');
-            const iconEl = document.getElementById('popup-icon');
-
+        function showPopup(message, type) {
+            var overlay = document.getElementById('popup-overlay');
+            var msgEl = document.getElementById('popup-message');
+            var iconEl = document.getElementById('popup-icon');
             msgEl.textContent = message;
-
             if (type === 'error') {
                 iconEl.className = 'w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-red-600/20 border border-red-500/30 text-red-400';
                 iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-6 h-6"></i>';
@@ -168,7 +70,6 @@
                 iconEl.className = 'w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-emerald-600/20 border border-emerald-500/30 text-emerald-400';
                 iconEl.innerHTML = '<i data-lucide="check-circle" class="w-6 h-6"></i>';
             }
-
             lucide.createIcons();
             overlay.classList.remove('hidden');
         }
@@ -177,187 +78,59 @@
             document.getElementById('popup-overlay').classList.add('hidden');
         }
 
-        function showLoading() {
-            document.getElementById('loading-overlay').classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            document.getElementById('loading-overlay').classList.add('hidden');
-        }
-
         function switchTab(mode) {
             currentMode = mode;
-            const title = document.getElementById('form-title');
-            const submitBtn = document.getElementById('submit-btn');
-            const tabLogin = document.getElementById('tab-login');
-            const tabRegister = document.getElementById('tab-register');
+            var title = document.getElementById('form-title');
+            var submitBtn = document.getElementById('submit-btn');
+            var tabLogin = document.getElementById('tab-login');
+            var tabRegister = document.getElementById('tab-register');
+            var warning = document.getElementById('display-name-warning');
 
             if (mode === 'login') {
                 title.textContent = "Welcome Back";
                 submitBtn.textContent = "Login";
+                warning.classList.add('hidden');
                 tabLogin.className = "px-3 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all";
                 tabRegister.className = "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all";
             } else {
                 title.textContent = "Create Account";
                 submitBtn.textContent = "Register";
+                warning.classList.remove('hidden');
                 tabRegister.className = "px-3 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all";
                 tabLogin.className = "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all";
             }
         }
 
-        function openProveModal() {
-            document.getElementById('proof-image').value = '';
-            document.getElementById('proof-filename').textContent = '';
-            document.getElementById('proof-preview-wrap').classList.add('hidden');
-            document.getElementById('proof-preview').src = '';
-            document.getElementById('proof-agree').checked = false;
-            document.getElementById('prove-overlay').classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function closeProveModal() {
-            document.getElementById('prove-overlay').classList.add('hidden');
-        }
-
-        // Kuvan valinta → esikatselu
-        document.getElementById('proof-image').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            const wrap = document.getElementById('proof-preview-wrap');
-            const preview = document.getElementById('proof-preview');
-            const nameEl = document.getElementById('proof-filename');
-
-            if (!file) {
-                wrap.classList.add('hidden');
-                preview.src = '';
-                nameEl.textContent = '';
-                return;
-            }
-
-            nameEl.textContent = file.name;
-            const url = URL.createObjectURL(file);
-            preview.src = url;
-            wrap.classList.remove('hidden');
-        });
-
         async function handleAuthSubmit(e) {
             e.preventDefault();
-            const username = document.getElementById('input-username').value.trim();
-            const password = document.getElementById('input-password').value;
+            var username = document.getElementById('input-username').value.trim();
+            var password = document.getElementById('input-password').value;
 
             if (!username || !password) {
-                showPopup("Username and password are required.", 'error');
+                showPopup("Username and password are required.", "error");
                 return;
             }
-
-            // LOGIN
-            if (currentMode === 'login') {
-                try {
-                    const res = await fetch(`${API_BASE}/api/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-                    const data = await res.json();
-
-                    if (data.success) {
-                        localStorage.setItem('epic_authenticated', 'true');
-                        localStorage.setItem('epic_username', username);
-                        window.location.href = 'index.html';
-                    } else {
-                        showPopup(data.message || "Invalid username or password.", 'error');
-                    }
-                } catch (err) {
-                    showPopup("Connection error. Make sure the backend server is running.", 'error');
-                    console.error(err);
-                }
-                return;
-            }
-
-            // REGISTER → open proof modal
-            pendingUsername = username;
-            pendingPassword = password;
-            openProveModal();
-        }
-
-        async function submitProof() {
-            const fileInput = document.getElementById('proof-image');
-            const agree = document.getElementById('proof-agree').checked;
-            const btn = document.getElementById('prove-submit-btn');
-
-            if (!agree) {
-                showPopup("You must agree that this is your real Fortnite profile.", 'error');
-                return;
-            }
-
-            if (!fileInput.files || !fileInput.files[0]) {
-                showPopup("Please upload a screenshot of your Fortnite profile.", 'error');
-                return;
-            }
-
-            const file = fileInput.files[0];
-            if (!file.type.startsWith('image/')) {
-                showPopup("File must be an image.", 'error');
-                return;
-            }
-
-            if (file.size > 4 * 1024 * 1024) {
-                showPopup("Image is too large. Max 4 MB.", 'error');
-                return;
-            }
-
-            btn.disabled = true;
-            showLoading();
 
             try {
-                const base64 = await fileToBase64(file);
-                const mimeType = file.type || 'image/png';
-
-                const res = await fetch(`${API_BASE}/api/auth/register-with-proof`, {
+                var endpoint = currentMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+                var res = await fetch(API_BASE + endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: pendingUsername,
-                        password: pendingPassword,
-                        imageBase64: base64,
-                        mimeType
-                    })
+                    body: JSON.stringify({ username: username, password: password })
                 });
-
-                const data = await res.json();
-
-                hideLoading();
+                var data = await res.json();
 
                 if (data.success) {
-                    closeProveModal();
                     localStorage.setItem('epic_authenticated', 'true');
-                    localStorage.setItem('epic_username', pendingUsername);
-                    showPopup(data.message || "Account created successfully!", 'success');
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1200);
+                    localStorage.setItem('epic_username', username);
+                    window.location.href = 'index.html';
                 } else {
-                    showPopup(data.message || "Verification failed. Try a clearer screenshot.", 'error');
+                    showPopup(data.message || "An error occurred.", "error");
                 }
             } catch (err) {
-                hideLoading();
-                showPopup("Connection error during verification.", 'error');
+                showPopup("Connection error. Make sure the backend server is running.", "error");
                 console.error(err);
-            } finally {
-                btn.disabled = false;
             }
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const result = reader.result;
-                    const base64 = result.split(',')[1] || result;
-                    resolve(base64);
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
         }
     </script>
 </body>
