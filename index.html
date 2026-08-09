@@ -55,9 +55,8 @@
 
             <div class="space-y-2">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Custom Key</label>
-                <div id="lm-code-container" class="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
-                    <span id="lm-code" class="font-mono text-lg font-bold tracking-widest text-slate-300">••••••••</span>
-                    <button id="lm-action-btn" class="px-4 py-2 text-xs font-bold rounded-lg transition-all"></button>
+                <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                    <span id="lm-code" class="font-mono text-sm font-bold tracking-wide text-slate-400 block text-center"></span>
                 </div>
             </div>
 
@@ -81,15 +80,14 @@
                         COMP<span class="text-blue-500">CUSTOMS</span>
                     </span>
                 </div>
-
                 <div class="shrink-0 flex items-center max-w-[50%] sm:max-w-none">
-                    <button id="login-epic" class="inline-flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 rounded-xl bg-black hover:bg-neutral-900 border border-neutral-700 text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-md hover:shadow-neutral-800/50 active:scale-95 max-w-full">
+                    <button id="login-epic" class="inline-flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 rounded-xl bg-black hover:bg-neutral-900 border border-neutral-700 text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-md active:scale-95 max-w-full">
                         <div id="epic-icon-container" class="flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 24 24">
                                 <path d="M12 0L1.75 3.87v10.51C1.75 18.97 12 24 12 24s10.25-5.03 10.25-9.62V3.87L12 0zm6.8 13.5c0 3.1-6.8 6.9-6.8 6.9s-6.8-3.8-6.8-6.9V5.7l6.8-2.6 6.8 2.6v7.8z"/>
                             </svg>
                         </div>
-                        <span id="epic-btn-text" class="truncate max-w-[110px] xs:max-w-[150px] sm:max-w-[200px]">Sign in / Register</span>
+                        <span id="epic-btn-text" class="truncate max-w-[110px] sm:max-w-[200px]">Sign in / Register</span>
                     </button>
                 </div>
             </div>
@@ -99,17 +97,14 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-12">
         <section class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-950/40 via-indigo-950/20 to-transparent border border-slate-800 p-8 md:p-12">
             <div class="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
-            
             <div class="relative z-10 max-w-3xl space-y-6">
                 <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold uppercase tracking-wider">
                     <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
                     <span>Competitive Platform</span>
                 </div>
-                
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none text-white">
                     FORTNITE <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">COMP HUB</span>
                 </h1>
-                
                 <p class="text-slate-400 text-base sm:text-lg leading-relaxed max-w-2xl">
                     Play and practice custom scrims across all regions. Sign in to access custom keys and live lobby information.
                 </p>
@@ -144,13 +139,10 @@
             </section>
 
             <section class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <i data-lucide="trophy" class="w-6 h-6 text-slate-500"></i>
-                        <h2 class="text-xl font-bold text-white tracking-wide">Top Players</h2>
-                    </div>
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="trophy" class="w-6 h-6 text-slate-500"></i>
+                    <h2 class="text-xl font-bold text-white tracking-wide">Top Players</h2>
                 </div>
-
                 <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-8 text-center flex flex-col items-center justify-center space-y-3">
                     <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-full text-red-400">
                         <i data-lucide="alert-circle" class="w-6 h-6"></i>
@@ -167,7 +159,6 @@
     <footer class="border-t border-slate-800/80 bg-black/40 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <p>&copy; 2026 CompCustoms. All rights reserved. Not affiliated with Epic Games.</p>
-            
             <div class="flex items-center space-x-6 font-semibold">
                 <a href="https://compcustoms.my.to/privacy" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Privacy Policy</a>
                 <a href="https://compcustoms.my.to/tos" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Terms of Service</a>
@@ -179,14 +170,14 @@
     <script>
         lucide.createIcons();
         const API_BASE = "https://compcustoms-api.onrender.com";
-        
-        let isAuthenticated = localStorage.getItem('epic_authenticated') === 'true';
-        let username = localStorage.getItem('epic_username') || '';
-        let currentLobbies = [];
+
+        var isAuthenticated = localStorage.getItem('epic_authenticated') === 'true';
+        var username = localStorage.getItem('epic_username') || '';
+        var currentLobbies = [];
 
         async function checkBanStatus() {
             try {
-                const res = await fetch(API_BASE + '/api/tournaments');
+                var res = await fetch(API_BASE + '/api/tournaments');
                 if (res.status === 403) {
                     window.location.href = 'banned.html';
                     return true;
@@ -196,43 +187,38 @@
         }
 
         function updateAuthStateUI() {
-            const btnText = document.getElementById('epic-btn-text');
-            const iconContainer = document.getElementById('epic-icon-container');
-            const loginBtn = document.getElementById('login-epic');
+            var btnText = document.getElementById('epic-btn-text');
+            var iconContainer = document.getElementById('epic-icon-container');
+            var loginBtn = document.getElementById('login-epic');
 
             if (isAuthenticated && username) {
                 btnText.textContent = username;
-                const firstLetter = username.charAt(0).toUpperCase();
+                var firstLetter = username.charAt(0).toUpperCase();
                 iconContainer.innerHTML = '<div class="w-5 h-5 rounded-full bg-blue-600 border border-blue-400 flex items-center justify-center text-[10px] font-black text-white leading-none uppercase shrink-0">' + firstLetter + '</div>';
-                loginBtn.onclick = function () {
-                    window.location.href = 'myprofile.html';
-                };
+                loginBtn.onclick = function () { window.location.href = 'myprofile.html'; };
             } else {
                 btnText.textContent = "Sign In / Register";
                 iconContainer.innerHTML = '<svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 0L1.75 3.87v10.51C1.75 18.97 12 24 12 24s10.25-5.03 10.25-9.62V3.87L12 0zm6.8 13.5c0 3.1-6.8 6.9-6.8 6.9s-6.8-3.8-6.8-6.9V5.7l6.8-2.6 6.8 2.6v7.8z"/></svg>';
-                loginBtn.onclick = function () {
-                    window.location.href = 'login.html';
-                };
+                loginBtn.onclick = function () { window.location.href = 'login.html'; };
             }
         }
 
         function formatLocalTime(isoString) {
-            const date = new Date(isoString);
+            var date = new Date(isoString);
             if (isNaN(date)) return "UNKNOWN DATE";
 
-            const now = new Date();
-            const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-            const dayName = days[date.getDay()];
-            const dayNum = date.getDate();
-            const monthNum = date.getMonth() + 1;
-            
-            const hours = String(date.getHours()).padStart(2, '0');
-            const mins = String(date.getMinutes()).padStart(2, '0');
+            var now = new Date();
+            var days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+            var dayName = days[date.getDay()];
+            var dayNum = date.getDate();
+            var monthNum = date.getMonth() + 1;
+            var hours = String(date.getHours()).padStart(2, '0');
+            var mins = String(date.getMinutes()).padStart(2, '0');
 
-            const diffTime = date.getTime() - now.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            var diffTime = date.getTime() - now.getTime();
+            var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            let relativeStr = "";
+            var relativeStr = "";
             if (diffDays === 0) relativeStr = "(TODAY)";
             else if (diffDays === 1) relativeStr = "(TOMORROW)";
             else if (diffDays > 1) relativeStr = "(IN " + diffDays + " DAYS)";
@@ -241,9 +227,15 @@
             return dayName + " " + dayNum + "." + monthNum + " at " + hours + ":" + mins + " " + relativeStr;
         }
 
+        function minutesUntil(isoString) {
+            var start = new Date(isoString).getTime();
+            if (isNaN(start)) return null;
+            return (start - Date.now()) / (1000 * 60);
+        }
+
         async function probeLobbies() {
             try {
-                const res = await fetch(API_BASE + '/api/tournaments');
+                var res = await fetch(API_BASE + '/api/tournaments');
                 if (res.status === 403) {
                     window.location.href = 'banned.html';
                     return;
@@ -254,9 +246,9 @@
                 document.getElementById('connection-dot').className = 'w-2 h-2 rounded-full bg-emerald-500';
                 document.getElementById('connection-text').className = 'text-xs text-emerald-400';
                 document.getElementById('connection-text').textContent = 'Online';
-
                 document.getElementById('unable-to-connect').style.display = 'none';
-                const container = document.getElementById('lobbies-container');
+
+                var container = document.getElementById('lobbies-container');
                 container.style.display = 'block';
                 container.innerHTML = '';
 
@@ -266,15 +258,15 @@
                 }
 
                 currentLobbies.forEach(function (lobby, index) {
-                    const timeFormatted = formatLocalTime(lobby.startTime);
-                    const item = document.createElement('div');
+                    var timeFormatted = formatLocalTime(lobby.startTime);
+                    var item = document.createElement('div');
                     item.className = 'bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4';
-                    
-                    const tagClass = "px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-extrabold rounded-md uppercase tracking-wider";
-                    const team = lobby.teamSize || 'SOLO';
-                    const mode = lobby.mode || 'BR';
-                    const submode = lobby.submode || 'BUILDS';
-                    const name = lobby.name || 'Unnamed';
+
+                    var tagClass = "px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-extrabold rounded-md uppercase tracking-wider";
+                    var team = lobby.teamSize || 'SOLO';
+                    var mode = lobby.mode || 'BR';
+                    var submode = lobby.submode || 'BUILDS';
+                    var name = lobby.name || 'Unnamed';
 
                     item.innerHTML =
                         '<div class="space-y-2">' +
@@ -289,14 +281,11 @@
                             '</div>' +
                         '</div>' +
                         '<div class="flex items-center gap-3 shrink-0">' +
-                            '<button onclick="openLobbyModal(' + index + ')" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20">' +
-                                'View Lobby' +
-                            '</button>' +
+                            '<button onclick="openLobbyModal(' + index + ')" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20">View Lobby</button>' +
                         '</div>';
 
                     container.appendChild(item);
                 });
-
             } catch (err) {
                 document.getElementById('unable-to-connect').style.display = '';
                 document.getElementById('lobbies-container').style.display = 'none';
@@ -307,7 +296,7 @@
         }
 
         function openLobbyModal(index) {
-            const lobby = currentLobbies[index];
+            var lobby = currentLobbies[index];
             if (!lobby) return;
 
             document.getElementById('lm-title').textContent = lobby.name;
@@ -317,23 +306,18 @@
             document.getElementById('lm-submode').textContent = lobby.submode || 'BUILDS';
             document.getElementById('lm-desc').textContent = lobby.description || 'No specific rules.';
 
-            const codeElem = document.getElementById('lm-code');
-            const actionBtn = document.getElementById('lm-action-btn');
+            var codeElem = document.getElementById('lm-code');
+            var mins = minutesUntil(lobby.startTime);
 
-            if (isAuthenticated) {
+            if (!isAuthenticated) {
+                codeElem.textContent = "You're not logged in";
+                codeElem.className = "font-mono text-sm font-bold tracking-wide text-slate-500 block text-center";
+            } else if (mins !== null && mins <= 10 && lobby.customCode) {
                 codeElem.textContent = lobby.customCode;
-                codeElem.className = "font-mono text-lg font-bold tracking-widest text-emerald-400";
-                actionBtn.textContent = "Reserve your spot";
-                actionBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 cursor-default";
-                actionBtn.onclick = null;
+                codeElem.className = "font-mono text-lg font-bold tracking-widest text-emerald-400 block text-center";
             } else {
-                codeElem.textContent = "••••••••";
-                codeElem.className = "font-mono text-lg font-bold tracking-widest text-slate-500";
-                actionBtn.textContent = "Sign in to view code";
-                actionBtn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white cursor-pointer transition-all";
-                actionBtn.onclick = function () {
-                    window.location.href = 'login.html';
-                };
+                codeElem.textContent = "Code will be shown 10 minutes before the match starts";
+                codeElem.className = "font-mono text-sm font-bold tracking-wide text-slate-400 block text-center";
             }
 
             document.getElementById('lobby-modal').classList.remove('hidden');
@@ -345,13 +329,10 @@
 
         document.addEventListener('DOMContentLoaded', async function () {
             lucide.createIcons();
-            
-            const isBanned = await checkBanStatus();
+            var isBanned = await checkBanStatus();
             if (isBanned) return;
-
             updateAuthStateUI();
             probeLobbies();
-
             document.getElementById('retry-btn').addEventListener('click', probeLobbies);
         });
     </script>
