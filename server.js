@@ -13,7 +13,7 @@ app.use(express.json());
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ==========================================
-// DATABASE: Persistent file-based storage
+// DATABASE
 // ==========================================
 const dbDir = path.join(__dirname, 'data');
 const usersFile = path.join(dbDir, 'users.json');
@@ -47,7 +47,7 @@ const saveUsers = (users) => {
 let usersDatabase = loadUsers();
 
 // ==========================================
-// 0. IP BANNING MIDDLEWARE (BANNED_IPS.json)
+// IP BANNING
 // ==========================================
 const getBannedIPs = () => {
     try {
@@ -76,7 +76,7 @@ app.use((req, res, next) => {
 });
 
 // ==========================================
-// 1. LOBBIES / TOURNAMENTS API
+// LOBBIES
 // ==========================================
 let lobbies = [];
 
@@ -119,7 +119,7 @@ app.delete('/api/tournaments/:id', (req, res) => {
 });
 
 // ==========================================
-// 2. AUTH API
+// AUTH
 // ==========================================
 app.post('/api/auth/register', (req, res) => {
     const { username, password } = req.body;
@@ -161,7 +161,7 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // ==========================================
-// 3. GEMINI AI CHATBOT API
+// AI CHAT (stronger prompt injection)
 // ==========================================
 app.post('/api/chat', async (req, res) => {
     try {
@@ -169,41 +169,46 @@ app.post('/api/chat', async (req, res) => {
         if (!message) return res.status(400).json({ error: "Message is required." });
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-3.5-flash-lite",
-            systemInstruction: `You are the official CompCustoms support bot.
-
-CompCustoms (compcustoms.my.to) is a Fortnite competitive customs platform. Users create accounts, join custom scrims, and get custom matchmaking keys.
-
-You only help with CompCustoms. Never talk about other websites, apps, games or services.
-
-Answer these topics only:
-- Creating an account / logging in
-- How to view the custom key (must be logged in, then open a lobby)
-- Lobby status and connection problems
-- Match rules
-- Account issues on CompCustoms
-
-Rules you must follow:
-- Never use markdown. No asterisks (*), no bold, no lists with stars.
-- Never ask which platform or website the user means. You already know it is CompCustoms.
-- If the question is off-topic, reply only: I can only help with CompCustoms related questions.
-- Keep answers short and direct.
-- Do not leave empty lines or extra spaces at the start of your reply.
-- Do not invent features.`
+            model: "gemini-3.5-flash-lite"
         });
 
+        // Force the persona by putting the instructions directly in the prompt
+        const fullPrompt = `You are the official CompCustoms support bot on compcustoms.my.to.
+
+CompCustoms is a Fortnite competitive customs website. Players create accounts, join custom scrims and get custom matchmaking keys.
+
+You ONLY answer questions about CompCustoms. Nothing else.
+
+Allowed topics:
+- How to create an account or log in
+- How to see the custom key (must be logged in first, then open a lobby)
+- Why lobbies show Offline or Unable to connect
+- Match rules
+- Account problems on CompCustoms
+
+Strict rules:
+- Never use * or ** or any markdown
+- Never ask which website or platform the user means
+- If the question is not about CompCustoms, reply only with: I can only help with CompCustoms related questions.
+- Keep answers short and clear
+- Do not start your reply with empty lines or spaces
+- Do not invent features
+
+User question: ${message}
+
+Your reply:`;
+
         const result = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: message }] }],
+            contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
             generationConfig: {
-                temperature: 0.2,
-                maxOutputTokens: 350
+                temperature: 0.15,
+                maxOutputTokens: 300
             }
         });
 
-        // Clean the response: remove leading/trailing whitespace and markdown stars
         let reply = result.response.text()
-            .replace(/^\s+/, '')          // remove leading whitespace
-            .replace(/\*+/g, '')          // remove all asterisks
+            .replace(/^\s+/, '')
+            .replace(/\*+/g, '')
             .trim();
 
         res.json({ reply });
@@ -214,7 +219,7 @@ Rules you must follow:
 });
 
 // ==========================================
-// Health check endpoint
+// HEALTH
 // ==========================================
 app.get('/api/health', (req, res) => {
     res.json({ 
