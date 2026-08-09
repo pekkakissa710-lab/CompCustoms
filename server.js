@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const path = require('path');
 const nodemailer = require('nodemailer');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
@@ -11,6 +12,41 @@ app.use(cors());
 app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// ==========================================
+// DATABASE: Persistent file-based storage
+// ==========================================
+const dbDir = path.join(__dirname, 'data');
+const usersFile = path.join(dbDir, 'users.json');
+
+const ensureDataDir = () => {
+    if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+    }
+};
+
+const loadUsers = () => {
+    try {
+        if (fs.existsSync(usersFile)) {
+            return JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+        }
+    } catch (err) {
+        console.error("Error loading users database:", err);
+    }
+    return [];
+};
+
+const saveUsers = (users) => {
+    try {
+        ensureDataDir();
+        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), 'utf8');
+    } catch (err) {
+        console.error("Error saving users database:", err);
+    }
+};
+
+let usersDatabase = loadUsers();
+const pendingVerification = new Map();
 
 // ==========================================
 // 0. IP BANNING MIDDLEWARE (BANNED_IPS.json)
@@ -26,7 +62,7 @@ const getBannedIPs = () => {
             }
         }
     } catch (err) {
-        console.error("Virhe bannilistan lukemisessa:", err);
+        console.error("Error reading ban list:", err);
     }
     return new Set();
 };
@@ -73,11 +109,8 @@ app.post('/api/tournaments', (req, res) => {
 });
 
 // ==========================================
-// 2. OMA AUTH & NODEMAILER SÄHKÖPOSTI (Koodivahvistuksella)
+// 2. AUTHENTICATION & EMAIL VERIFICATION
 // ==========================================
-const usersDatabase = [];
-const pendingVerification = new Map();
-
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -86,16 +119,25 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Check email connectivity on startup
+transporter.verify((error, success) => {
+    if (error) {
+        console.warn("⚠️  Email service not configured. Email verification will not work.");
+    } else {
+        console.log("✓ Email service ready");
+    }
+});
+
 app.post('/api/auth/register', async (req, res) => {
     const { email, epicUsername, password } = req.body;
 
     if (!email || !epicUsername || !password) {
-        return res.status(400).json({ success: false, message: "Kaikki kentät vaaditaan!" });
+        return res.status(400).json({ success: false, message: "All fields are required!" });
     }
 
     const existing = usersDatabase.find(u => u.email === email || u.epicUsername === epicUsername);
     if (existing) {
-        return res.status(400).json({ success: false, message: "Sähköposti tai Epic-käyttäjätunnus on jo käytössä." });
+        return res.status(400).json({ success: false, message: "Email or Epic username already in use." });
     }
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -105,13 +147,14 @@ app.post('/api/auth/register', async (req, res) => {
         await transporter.sendMail({
             from: '"CompCustoms" <no-reply@compcustoms.my.to>',
             to: email,
-            subject: 'Vahvistuskoodisi CompCustomsiin',
-            text: `Hei ${epicUsername}!\n\nVahvistuskoodisi CompCustoms-tilin luomiseen on: ${verificationCode}\n\nTerveisin,\nCompCustoms Team`
+            subject: 'Your CompCustoms Verification Code',
+            text: `Hi ${epicUsername}!\n\nYour verification code for CompCustoms account creation is: ${verificationCode}\n\nBest regards,\nCompCustoms Team`,
+            html: `<h2>Welcome to CompCustoms!</h2><p>Your verification code is: <strong>${verificationCode}</strong></p>`
         });
-        res.json({ success: true, requireVerification: true, message: "Vahvistuskoodi lähetetty sähköpostiisi!" });
+        res.json({ success: true, requireVerification: true, message: "Verification code sent to your email!" });
     } catch (error) {
-        console.error("Sähköpostin lähetys epäonnistui:", error);
-        res.status(500).json({ success: false, message: "Sähköpostin lähetys epäonnistui." });
+        console.error("Email sending failed:", error);
+        res.status(500).json({ success: false, message: "Email sending failed. Please try again later." });
     }
 });
 
@@ -120,29 +163,36 @@ app.post('/api/auth/verify', async (req, res) => {
 
     const pending = pendingVerification.get(email);
     if (!pending || pending.verificationCode !== code) {
-        return res.status(400).json({ success: false, message: "Virheellinen vahvistuskoodi." });
+        return res.status(400).json({ success: false, message: "Invalid verification code." });
     }
 
-    usersDatabase.push({
+    const newUser = {
         email: pending.email,
         epicUsername: pending.epicUsername,
-        password: pending.password
-    });
+        password: pending.password,
+        createdAt: new Date().toISOString()
+    };
 
+    usersDatabase.push(newUser);
+    saveUsers(usersDatabase);
     pendingVerification.delete(email);
 
-    res.json({ success: true, username: pending.epicUsername, message: "Tili vahvistettu ja luotu onnistuneesti!" });
+    res.json({ success: true, username: pending.epicUsername, message: "Account verified and created successfully!" });
 });
 
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
 
-    const user = usersDatabase.find(u => u.email === email && u.password === password);
-    if (!user) {
-        return res.status(400).json({ success: false, message: "Virheellinen sähköposti tai salasana." });
+    if (!email || !password) {
+        return res.status(400).json({ success: false, message: "Email and password are required." });
     }
 
-    res.json({ success: true, username: user.epicUsername, message: "Kirjauduttu sisään!" });
+    const user = usersDatabase.find(u => u.email === email && u.password === password);
+    if (!user) {
+        return res.status(400).json({ success: false, message: "Invalid email or password." });
+    }
+
+    res.json({ success: true, username: user.epicUsername, message: "Logged in successfully!" });
 });
 
 // ==========================================
@@ -151,7 +201,7 @@ app.post('/api/auth/login', (req, res) => {
 app.post('/api/chat', async (req, res) => {
     try {
         const { message } = req.body;
-        if (!message) return res.status(400).json({ error: "Viesti puuttuu." });
+        if (!message) return res.status(400).json({ error: "Message is required." });
 
         const model = genAI.getGenerativeModel({ 
             model: "gemini-1.5-flash",
@@ -162,11 +212,19 @@ app.post('/api/chat', async (req, res) => {
         res.json({ reply: result.response.text() });
     } catch (error) {
         console.error("Gemini API Error:", error);
-        res.status(500).json({ error: "Virhe tekoälyvastauksen luonnissa." });
+        res.status(500).json({ error: "Error generating AI response." });
     }
+});
+
+// ==========================================
+// Health check endpoint
+// ==========================================
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), usersCount: usersDatabase.length });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Palvelin käynnissä portissa ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
+    ensureDataDir();
 });
