@@ -30,7 +30,7 @@
     <nav class="sticky top-0 z-40 backdrop-blur-md bg-[#050B14]/80 border-b border-slate-800/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20 gap-4">
-                <a href="/" class="flex items-center space-x-3 group shrink-0">
+                <a href="index.html" class="flex items-center space-x-3 group shrink-0">
                     <img src="logo.png" alt="Logo" class="w-8 h-8 rounded-lg shrink-0">
                     <span class="text-xl sm:text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-blue-400">
                         COMP<span class="text-blue-500">CUSTOMS</span>
@@ -38,7 +38,7 @@
                 </a>
 
                 <div class="shrink-0 flex items-center gap-3">
-                    <a href="/" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm tracking-wide transition-all">
+                    <a href="index.html" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm tracking-wide transition-all">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i>
                         <span>Back to Hub</span>
                     </a>
@@ -47,16 +47,17 @@
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-8">
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-10">
         <div class="space-y-3 border-b border-slate-800 pb-6">
             <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold uppercase tracking-wider">
                 <i data-lucide="bot" class="w-3.5 h-3.5"></i>
                 <span>AI Support Assistant</span>
             </div>
             <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Help & Support</h1>
-            <p class="text-sm text-slate-400">Have questions? Chat with our AI support bot or choose a quick topic below.</p>
+            <p class="text-sm text-slate-400">Chat with our AI assistant or check the FAQ below.</p>
         </div>
 
+        <!-- AI Chat -->
         <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden flex flex-col h-[500px] shadow-2xl">
             <div class="p-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -66,7 +67,7 @@
                     <div>
                         <h3 class="text-sm font-bold text-white leading-none">CompCustoms AI Assistant</h3>
                         <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online & Ready
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Powered by Gemini
                         </span>
                     </div>
                 </div>
@@ -79,7 +80,7 @@
                     </div>
                     <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl rounded-tl-none p-3 text-xs sm:text-sm text-slate-200 max-w-[80%] space-y-2">
                         <p>Hello! I'm the CompCustoms AI Support Bot. How can I help you today?</p>
-                        <p class="text-[11px] text-slate-400">You can ask me about custom keys, sign in issues, match rules, or host permissions!</p>
+                        <p class="text-[11px] text-slate-400">Ask about custom keys, accounts, lobbies, or match rules.</p>
                     </div>
                 </div>
             </div>
@@ -88,8 +89,8 @@
                 <button onclick="sendQuickPrompt('How do I view the custom key?')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full border border-slate-700 shrink-0 transition-colors flex items-center gap-1.5">
                     <i data-lucide="key" class="w-3 h-3 text-blue-400"></i> View custom key
                 </button>
-                <button onclick="sendQuickPrompt('How to sign in with Epic Games?')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full border border-slate-700 shrink-0 transition-colors flex items-center gap-1.5">
-                    <i data-lucide="gamepad-2" class="w-3 h-3 text-blue-400"></i> Epic Games Sign In
+                <button onclick="sendQuickPrompt('How do I create an account?')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full border border-slate-700 shrink-0 transition-colors flex items-center gap-1.5">
+                    <i data-lucide="user-plus" class="w-3 h-3 text-blue-400"></i> Create account
                 </button>
                 <button onclick="sendQuickPrompt('What are the match rules?')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full border border-slate-700 shrink-0 transition-colors flex items-center gap-1.5">
                     <i data-lucide="scroll" class="w-3 h-3 text-blue-400"></i> Match Rules
@@ -98,21 +99,90 @@
 
             <form id="chat-form" onsubmit="handleSendMessage(event)" class="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2">
                 <input type="text" id="chat-input" placeholder="Ask a question..." autocomplete="off" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
-                <button type="submit" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20 shrink-0 flex items-center justify-center">
+                <button type="submit" id="send-btn" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20 shrink-0 flex items-center justify-center disabled:opacity-50">
                     <i data-lucide="send" class="w-4 h-4"></i>
                 </button>
             </form>
         </div>
+
+        <!-- FAQ -->
+        <section class="space-y-5">
+            <div class="flex items-center gap-3">
+                <i data-lucide="help-circle" class="w-6 h-6 text-slate-500"></i>
+                <h2 class="text-xl font-bold text-white tracking-wide">Frequently Asked Questions</h2>
+            </div>
+
+            <div class="space-y-3" id="faq-list">
+                <div class="faq-item bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left gap-4">
+                        <span class="text-sm font-semibold text-white">How do I create an account / log in?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 shrink-0 transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hidden px-5 pb-5 text-sm text-slate-400 leading-relaxed">
+                        Click <strong class="text-slate-200">Sign In / Register</strong> in the top right. Choose Register, pick a username and password (don't use your real Epic password). After that you can log in with the same credentials.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left gap-4">
+                        <span class="text-sm font-semibold text-white">How do I see the custom lobby key?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 shrink-0 transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hidden px-5 pb-5 text-sm text-slate-400 leading-relaxed">
+                        You must be logged in. Then open any active lobby from the hub — the custom key is revealed only for signed-in users.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left gap-4">
+                        <span class="text-sm font-semibold text-white">What are the match rules?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 shrink-0 transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hidden px-5 pb-5 text-sm text-slate-400 leading-relaxed">
+                        Each lobby has its own rules in the details popup. General rules: no teaming, no stream sniping, no sharing custom keys publicly, and no toxicity. Breaking rules can get you banned.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left gap-4">
+                        <span class="text-sm font-semibold text-white">Who creates the lobbies?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 shrink-0 transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hidden px-5 pb-5 text-sm text-slate-400 leading-relaxed">
+                        Lobbies are created by authorized CompCustoms hosts through the admin panel. Regular players cannot create official lobbies.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left gap-4">
+                        <span class="text-sm font-semibold text-white">The site says Offline / Unable to connect</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 shrink-0 transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hidden px-5 pb-5 text-sm text-slate-400 leading-relaxed">
+                        The backend may be sleeping (free hosting) or temporarily down. Wait a few seconds and click Try Again. If it keeps failing, the server is restarting — try again in 30–60 seconds.
+                    </div>
+                </div>
+
+                <div class="faq-item bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left gap-4">
+                        <span class="text-sm font-semibold text-white">I forgot my password / account issues</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 shrink-0 transition-transform"></i>
+                    </button>
+                    <div class="faq-answer hidden px-5 pb-5 text-sm text-slate-400 leading-relaxed">
+                        Password reset is not available yet. Create a new account with a different username, or contact an admin if you need your old account recovered.
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="border-t border-slate-800/80 bg-black/40 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <p>&copy; 2026 CompCustoms. All rights reserved. Not affiliated with Epic Games.</p>
-            
             <div class="flex items-center space-x-6 font-semibold">
-                <a href="https://compcustoms.my.to/privacy" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Privacy Policy</a>
-                <a href="https://compcustoms.my.to/tos" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Terms of Service</a>
-                <a href="https://compcustoms.my.to/support" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Support</a>
+                <a href="privacy.html" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Privacy Policy</a>
+                <a href="tos.html" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Terms of Service</a>
+                <a href="support.html" class="hover:text-slate-300 transition-colors uppercase tracking-wider">Support</a>
             </div>
         </div>
     </footer>
@@ -120,40 +190,22 @@
     <script>
         lucide.createIcons();
 
-        // AI Knowledge Base & Matcher
-        const faqDatabase = [
-            {
-                keywords: ["key", "custom key", "code", "custom code", "see code", "view code", "koodi", "avain"],
-                response: "To view custom lobby keys, you must first sign in with your Epic Games account using the top-right button. Once signed in, click on any active lobby to reveal its custom key!"
-            },
-            {
-                keywords: ["login", "sign in", "epic", "auth", "epic games", "kirjaudu"],
-                response: "You can sign in by clicking the 'Sign in with Epic Games' button in the navigation header. You will be redirected to Epic Games to authorize your account safely."
-            },
-            {
-                keywords: ["rule", "rules", "säännöt", "sääntö", "teaming", "griefing"],
-                response: "Each lobby has its own rules listed inside the details popup. General rules prohibit teaming, stream sniping, sharing custom keys, or toxicity. Violators will be banned."
-            },
-            {
-                keywords: ["host", "admin", "create lobby", "isäntä"],
-                response: "Lobbies are managed by CompCustoms authorized hosts through the Admin Panel. If you want to become a host, join our community discord or contact support."
-            },
-            {
-                keywords: ["hello", "hi", "hey", "moi", "hei", "terve"],
-                response: "Hello there! How can I assist you with CompCustoms today?"
+        const API_BASE = "https://compcustoms-api.onrender.com";
+
+        function toggleFaq(btn) {
+            const item = btn.closest('.faq-item');
+            const answer = item.querySelector('.faq-answer');
+            const icon = btn.querySelector('[data-lucide="chevron-down"]');
+            const isOpen = !answer.classList.contains('hidden');
+
+            // Close all
+            document.querySelectorAll('.faq-answer').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.faq-item [data-lucide="chevron-down"]').forEach(el => el.style.transform = '');
+
+            if (!isOpen) {
+                answer.classList.remove('hidden');
+                if (icon) icon.style.transform = 'rotate(180deg)';
             }
-        ];
-
-        function generateAIResponse(userText) {
-            const lower = userText.toLowerCase();
-
-            for (const item of faqDatabase) {
-                if (item.keywords.some(kw => lower.includes(kw))) {
-                    return item.response;
-                }
-            }
-
-            return "I'm not completely sure about that specific question, but you can try asking about custom keys, sign-in procedures, or match rules! If you need direct assistance, please contact an admin on Discord.";
         }
 
         function appendUserMessage(text) {
@@ -162,7 +214,7 @@
             msg.className = "flex gap-3 justify-end";
             msg.innerHTML = `
                 <div class="bg-blue-600 text-white rounded-2xl rounded-tr-none p-3 text-xs sm:text-sm max-w-[80%] shadow-md">
-                    ${text}
+                    ${escapeHtml(text)}
                 </div>
             `;
             chatBox.appendChild(msg);
@@ -177,8 +229,8 @@
                 <div class="w-7 h-7 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
                     <i data-lucide="bot" class="w-3.5 h-3.5"></i>
                 </div>
-                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl rounded-tl-none p-3 text-xs sm:text-sm text-slate-200 max-w-[80%] shadow-md">
-                    ${text}
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl rounded-tl-none p-3 text-xs sm:text-sm text-slate-200 max-w-[80%] shadow-md whitespace-pre-wrap">
+                    ${escapeHtml(text)}
                 </div>
             `;
             chatBox.appendChild(msg);
@@ -186,19 +238,71 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        function handleSendMessage(e) {
+        function appendTyping() {
+            const chatBox = document.getElementById('chat-box');
+            const msg = document.createElement('div');
+            msg.id = 'typing-indicator';
+            msg.className = "flex gap-3";
+            msg.innerHTML = `
+                <div class="w-7 h-7 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                    <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+                </div>
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl rounded-tl-none p-3 text-xs text-slate-400">
+                    Thinking...
+                </div>
+            `;
+            chatBox.appendChild(msg);
+            lucide.createIcons();
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeTyping() {
+            const el = document.getElementById('typing-indicator');
+            if (el) el.remove();
+        }
+
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        async function handleSendMessage(e) {
             e.preventDefault();
             const input = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('send-btn');
             const text = input.value.trim();
             if (!text) return;
 
             appendUserMessage(text);
             input.value = '';
+            sendBtn.disabled = true;
+            appendTyping();
 
-            setTimeout(() => {
-                const botReply = generateAIResponse(text);
-                appendBotMessage(botReply);
-            }, 500);
+            try {
+                const res = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+                removeTyping();
+
+                if (data.reply) {
+                    appendBotMessage(data.reply);
+                } else {
+                    appendBotMessage(data.error || "Sorry, I couldn't generate a response. Please try again.");
+                }
+            } catch (err) {
+                removeTyping();
+                appendBotMessage("Connection error. The support server might be offline. Please try again in a moment.");
+                console.error(err);
+            } finally {
+                sendBtn.disabled = false;
+            }
         }
 
         function sendQuickPrompt(promptText) {
@@ -208,4 +312,3 @@
     </script>
 </body>
 </html>
-
