@@ -32,22 +32,22 @@
         <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
             <div id="email-field">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Email</label>
-                <input type="email" id="input-email" required placeholder="name@example.com" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500">
+                <input type="email" id="input-email" required placeholder="name@example.com" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             </div>
 
             <div id="username-field" class="hidden">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Epic Username</label>
-                <input type="text" id="input-username" placeholder="YourIngameName" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500">
+                <input type="text" id="input-username" placeholder="YourIngameName" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             </div>
 
             <div id="password-field-container">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Password</label>
-                <input type="password" id="input-password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500">
+                <input type="password" id="input-password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             </div>
 
             <div id="code-field" class="hidden">
                 <label class="block text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">Verification Code</label>
-                <input type="text" id="input-code" maxlength="6" placeholder="123456" class="w-full px-4 py-2.5 bg-slate-950 border border-blue-500 rounded-xl text-white text-lg tracking-widest font-mono text-center focus:outline-none focus:border-blue-400">
+                <input type="text" id="input-code" maxlength="6" placeholder="123456" class="w-full px-4 py-2.5 bg-slate-950 border border-blue-500 rounded-xl text-white text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all">
             </div>
 
             <button type="submit" id="submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">
@@ -58,12 +58,24 @@
 
     <script>
         lucide.createIcons();
-        const API_BASE = "https://compcustoms-api.onrender.com";
+        
+        // Detect API_BASE dynamically
+        const getAPIBase = () => {
+            const protocol = window.location.protocol;
+            const host = window.location.host;
+            // Use same origin by default, fallback to hardcoded URL
+            if (host.includes('localhost') || host.includes('127.0.0.1')) {
+                return `http://${host}`;
+            }
+            return `${protocol}//${host}`;
+        };
+        
+        const API_BASE = getAPIBase();
         let currentMode = 'login';
         let awaitingVerification = false;
 
         function switchTab(mode) {
-            if (awaitingVerification) return; // Estetään tabien vaihto kesken vahvistuksen
+            if (awaitingVerification) return;
             currentMode = mode;
             const title = document.getElementById('form-title');
             const userField = document.getElementById('username-field');
@@ -97,7 +109,6 @@
 
             try {
                 if (awaitingVerification) {
-                    // Vaihe 2: Tarkistetaan 6-numeroinen koodi
                     const res = await fetch(`${API_BASE}/api/auth/verify`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -110,10 +121,9 @@
                         localStorage.setItem('epic_username', data.username);
                         window.location.href = 'index.html';
                     } else {
-                        alert(data.message || "Virheellinen koodi.");
+                        alert(data.message || "Invalid verification code.");
                     }
                 } else {
-                    // Vaihe 1: Normaali Login tai Register-aloitus
                     const endpoint = currentMode === 'login' ? '/api/auth/login' : '/api/auth/register';
                     const payload = currentMode === 'login' ? { email, password } : { email, epicUsername, password };
 
@@ -127,13 +137,11 @@
 
                     if (data.success) {
                         if (currentMode === 'register' && data.requireVerification) {
-                            // Siirrytään koodin syöttövaiheeseen
                             awaitingVerification = true;
                             document.getElementById('form-title').textContent = "Verify Email";
                             document.getElementById('form-desc').textContent = "Put here the 6 digit code that was sent to your email.";
                             document.getElementById('form-desc').className = "text-xs text-blue-400 font-semibold bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-xl leading-relaxed";
                             
-                            // Piilotellaan muut kentät, näytetään vain koodi
                             document.getElementById('email-field').style.opacity = '0.5';
                             document.getElementById('input-email').readOnly = true;
                             document.getElementById('username-field').classList.add('hidden');
@@ -143,20 +151,19 @@
                             
                             document.getElementById('submit-btn').textContent = "Verify & Login";
                         } else {
-                            // Suora sisäänkirjautuminen
                             localStorage.setItem('epic_authenticated', 'true');
                             localStorage.setItem('epic_username', data.username || epicUsername);
                             window.location.href = 'index.html';
                         }
                     } else {
-                        alert(data.message || "Tapahtui virhe.");
+                        alert(data.message || "An error occurred.");
                     }
                 }
             } catch (err) {
-                alert("Yhteysvirhe palvelimeen.");
+                alert("Connection error. Make sure the backend server is running.");
+                console.error(err);
             }
         }
     </script>
 </body>
 </html>
-
