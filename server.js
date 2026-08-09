@@ -52,16 +52,22 @@ let usersDatabase = loadUsers();
 const getBannedIPs = () => {
     try {
         const filePath = '/etc/secrets/BANNED_IPS.json';
-        if (fs.existsSync(filePath)) {
-            const raw = fs.readFileSync(filePath, 'utf8');
-            const data = JSON.parse(raw);
-            if (Array.isArray(data)) {
-                return new Set(data.map(ip => ip.trim()).filter(Boolean));
-            }
+
+        // Tiedostoa ei ole → signaali redirectille
+        if (!fs.existsSync(filePath)) {
+            return null;
+        }
+
+        const raw = fs.readFileSync(filePath, 'utf8');
+        const data = JSON.parse(raw);
+
+        if (Array.isArray(data)) {
+            return new Set(data.map(ip => ip.trim()).filter(Boolean));
         }
     } catch (err) {
         console.error("Error reading ban list:", err);
     }
+
     return new Set();
 };
 
@@ -69,9 +75,16 @@ app.use((req, res, next) => {
     const clientIp = req.ip || req.connection.remoteAddress;
     const bannedIPs = getBannedIPs();
 
+    // Tiedostoa ei löydy → ohjaa pääsivulle
+    if (bannedIPs === null) {
+        return res.redirect(302, 'https://compcustoms.my.to');
+    }
+
+    // IP on banattu
     if (bannedIPs.has(clientIp)) {
         return res.status(403).json({ error: "Access Denied: You are banned from this site." });
     }
+
     next();
 });
 
