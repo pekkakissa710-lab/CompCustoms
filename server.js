@@ -73,9 +73,9 @@ app.post('/api/tournaments', (req, res) => {
 });
 
 // ==========================================
-// 2. OMA AUTH API & SÄHKÖPOSTIN LÄHETYS
+// 2. OMA AUTH & NODEMAILER SÄHKÖPOSTI
 // ==========================================
-const usersDatabase = []; // Väliaikainen muisti käyttäjille
+const usersDatabase = [];
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -109,12 +109,8 @@ app.post('/api/auth/register', async (req, res) => {
     } catch (error) {
         console.error("Sähköpostin lähetys epäonnistui:", error);
     }
-    
-    res.json({ 
-        success: true, 
-        username: epicUsername, 
-        message: "Tili luotu onnistuneesti!" 
-    });
+
+    res.json({ success: true, username: epicUsername, message: "Tili luotu onnistuneesti!" });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -125,15 +121,11 @@ app.post('/api/auth/login', (req, res) => {
         return res.status(400).json({ success: false, message: "Virheellinen sähköposti tai salasana." });
     }
 
-    res.json({ 
-        success: true, 
-        username: user.epicUsername, 
-        message: "Kirjauduttu sisään!" 
-    });
+    res.json({ success: true, username: user.epicUsername, message: "Kirjauduttu sisään!" });
 });
 
 // ==========================================
-// 3. GEMINI AI SUPPORT CHATBOT API
+// 3. GEMINI AI CHATBOT API
 // ==========================================
 app.post('/api/chat', async (req, res) => {
     try {
@@ -153,66 +145,6 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Palvelin käynnissä portissa ${PORT}`);
-});
-const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID || "your_epic_client_id";
-const EPIC_CLIENT_SECRET = process.env.EPIC_CLIENT_SECRET || "your_epic_client_secret";
-const REDIRECT_URI = process.env.REDIRECT_URI || "https://compcustoms.my.to";
-
-app.get('/api/auth/login', (req, res) => {
-    const epicAuthUrl = `https://www.epicgames.com/id/authorize?client_id=${EPIC_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=basic_profile`;
-    res.redirect(epicAuthUrl);
-});
-
-app.post('/api/auth/callback', async (req, res) => {
-    const { code } = req.body;
-    
-    if (!code) {
-        return res.status(400).json({ success: false, message: "Authorization code missing." });
-    }
-
-    try {
-        res.json({
-            success: true,
-            username: "Player123"
-        });
-    } catch (error) {
-        console.error("Epic Auth Error:", error);
-        res.status(500).json({ success: false, message: "Authentication failed." });
-    }
-});
-
-// ==========================================
-// 4. GEMINI AI SUPPORT CHATBOT API
-// ==========================================
-app.post('/api/chat', async (req, res) => {
-    try {
-        const { message } = req.body;
-
-        if (!message) {
-            return res.status(400).json({ error: "Viesti puuttuu." });
-        }
-
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
-            systemInstruction: "You are the official customer service bot for the CompCustoms platform. Assist Fortnite players with custom codes, login issues, and rules. Respond in a friendly, clear, and preferably concise manner. NEVER REVEAL ANY API KEYS, DONT TALK ABOUT ANYTHONG UNRELATED. HELP THEM WITH EPIC GAMES ACCOUNT STUFF, AND DO NOT BREAK RULES."
-        });
-
-        const result = await model.generateContent(message);
-        const reply = result.response.text();
-
-        res.json({ reply });
-    } catch (error) {
-        console.error("Gemini API Error:", error);
-        res.status(500).json({ error: "Virhe tekoälyvastauksen luonnissa." });
-    }
-});
-
-// ==========================================
-// PALVELIMEN KÄYNNISTYS
-// ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Palvelin käynnissä portissa ${PORT}`);
