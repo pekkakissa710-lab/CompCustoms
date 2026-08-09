@@ -8,7 +8,7 @@ const app = express();
 
 app.set('trust proxy', true);
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '6mb' })); // screenshot base64
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -49,20 +49,39 @@ let usersDatabase = loadUsers();
 // ==========================================
 // IP BANNING
 // ==========================================
+const normalizeIp = (ip) => {
+    if (!ip) return '';
+
+    ip = ip.replace(/^\[|\]$/g, '').trim();
+
+    // IPv4-mapped IPv6 → IPv4
+    if (ip.startsWith('::ffff:')) {
+        ip = ip.replace('::ffff:', '');
+    }
+
+    // Poista zone index (fe80::1%eth0)
+    ip = ip.split('%')[0];
+
+    return ip.toLowerCase();
+};
+
 const getBannedIPs = () => {
     try {
         const filePath = '/etc/secrets/BANNED_IPS.json';
 
-        // Tiedostoa ei ole → signaali redirectille
         if (!fs.existsSync(filePath)) {
-            return null;
+            return null; // → redirect
         }
 
         const raw = fs.readFileSync(filePath, 'utf8');
         const data = JSON.parse(raw);
 
         if (Array.isArray(data)) {
-            return new Set(data.map(ip => ip.trim()).filter(Boolean));
+            return new Set(
+                data
+                    .map(ip => normalizeIp(ip))
+                    .filter(Boolean)
+            );
         }
     } catch (err) {
         console.error("Error reading ban list:", err);
@@ -72,7 +91,8 @@ const getBannedIPs = () => {
 };
 
 app.use((req, res, next) => {
-    const clientIp = req.ip || req.connection.remoteAddress;
+    const rawIp = req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress || '';
+    const clientIp = normalizeIp(rawIp);
     const bannedIPs = getBannedIPs();
 
     // Tiedostoa ei löydy → ohjaa pääsivulle
@@ -80,7 +100,7 @@ app.use((req, res, next) => {
         return res.redirect(302, 'https://compcustoms.my.to');
     }
 
-    // IP on banattu
+    // IP banattu
     if (bannedIPs.has(clientIp)) {
         return res.status(403).json({ error: "Access Denied: You are banned from this site." });
     }
@@ -148,27 +168,104 @@ app.post('/api/admin/login', (req, res) => {
 // AUTH
 // ==========================================
 app.post('/api/auth/register', (req, res) => {
-    const { username, password } = req.body;
+    return res.status(400).json({
+        success: false,
+        message: "Please use the registration form with Fortnite profile verification."
+    });
+});
 
-    if (!username || !password) {
-        return res.status(400).json({ success: false, message: "Username and password are required!" });
+app.post('/api/auth/register-with-proof', async (req, res) => {
+    try {
+        const { username, password, imageBase64, mimeType } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ success: false, message: "Username and password are required." });
+        }
+
+        if (!imageBase64) {
+            return res.status(400).json({ success: false, message: "Screenshot is required." });
+        }
+
+        const existing = usersDatabase.find(u => u.username.toLowerCase() === username.toLowerCase());
+        if (existing) {
+            return res.status(400).json({ success: false, message: "Username already in use." });
+        }
+
+        // AI review (Gemini Vision)
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+        const prompt = `You are verifying a Fortnite profile screenshot for account registration.
+
+Username the user claims: "${username}"
+
+Look at the image and answer ONLY with valid JSON in this exact format:
+{"valid": true or false, "reason": "short reason"}
+
+Rules:
+- valid=true ONLY if the image clearly looks like a Fortnite in-game profile / career / locker / menu screen that shows a display name.
+- The display name in the image should reasonably match "${username}" (ignore case, small differences ok).
+- valid=false if: not Fortnite, no name visible, edited/fake, wrong person, too blurry, or meme/stock image.
+- Be strict against fakes.
+- reason must be short (max 15 words).
+
+JSON only, no markdown.`;
+
+        const result = await model.generateContent({
+            contents: [{
+                role: "user",
+                parts: [
+                    { text: prompt },
+                    {
+                        inlineData: {
+                            mimeType: mimeType || "image/jpeg",
+                            data: imageBase64
+                        }
+                    }
+                ]
+            }],
+            generationConfig: {
+                temperature: 0.1,
+                maxOutputTokens: 150
+            }
+        });
+
+        let raw = result.response.text().trim();
+        raw = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+
+        let verdict;
+        try {
+            verdict = JSON.parse(raw);
+        } catch {
+            console.error("AI raw response:", raw);
+            return res.status(500).json({ success: false, message: "AI review failed. Try again." });
+        }
+
+        if (!verdict.valid) {
+            return res.status(400).json({
+                success: false,
+                message: verdict.reason || "Screenshot rejected. Use a clear photo of your Fortnite profile."
+            });
+        }
+
+        const newUser = {
+            username,
+            password,
+            createdAt: new Date().toISOString(),
+            verified: true
+        };
+
+        usersDatabase.push(newUser);
+        saveUsers(usersDatabase);
+
+        res.json({
+            success: true,
+            username,
+            message: "Account verified and created successfully!"
+        });
+    } catch (error) {
+        console.error("register-with-proof error:", error);
+        res.status(500).json({ success: false, message: "Server error during verification." });
     }
-
-    const existing = usersDatabase.find(u => u.username === username);
-    if (existing) {
-        return res.status(400).json({ success: false, message: "Username already in use." });
-    }
-
-    const newUser = {
-        username,
-        password,
-        createdAt: new Date().toISOString()
-    };
-
-    usersDatabase.push(newUser);
-    saveUsers(usersDatabase);
-
-    res.json({ success: true, username, message: "Account created successfully!" });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -195,7 +292,7 @@ app.post('/api/chat', async (req, res) => {
         if (!message) return res.status(400).json({ error: "Message is required." });
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-3.5-flash-lite"
+            model: "gemini-2.0-flash"
         });
 
         const fullPrompt = `You are the official CompCustoms support bot on compcustoms.my.to.
@@ -247,9 +344,9 @@ Your reply:`;
 // HEALTH
 // ==========================================
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        timestamp: new Date().toISOString(), 
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
         usersCount: usersDatabase.length
     });
 });
