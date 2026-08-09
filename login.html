@@ -49,17 +49,8 @@
     <script>
         lucide.createIcons();
         
-        // Detect API_BASE dynamically
-        const getAPIBase = () => {
-            const protocol = window.location.protocol;
-            const host = window.location.host;
-            if (host.includes('localhost') || host.includes('127.0.0.1')) {
-                return `http://${host}`;
-            }
-            return `${protocol}//${host}`;
-        };
-        
-        const API_BASE = getAPIBase();
+        // Use the same backend as index.html (Render)
+        const API_BASE = "https://compcustoms-api.onrender.com";
         let currentMode = 'login';
 
         function switchTab(mode) {
@@ -91,7 +82,7 @@
                 const endpoint = currentMode === 'login' ? '/api/auth/login' : '/api/auth/register';
                 const payload = { username, password };
 
-                const res = await fetch(`${API_BASE}${endpoint}`, {
+                const res = await fetch(`\( {API_BASE} \){endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
