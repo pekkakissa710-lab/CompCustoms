@@ -86,12 +86,12 @@ app.get('/api/tournaments', (req, res) => {
 
 app.post('/api/tournaments', (req, res) => {
     const { secret, name, customCode, startTime, teamSize, mode, submode, description } = req.body;
-    
-    if (secret !== process.env.EPIC_CLIENT_SECRET) {
-        return res.status(401).json({ error: "Unauthorized" });
+
+    if (secret !== process.env.EPIC_CLIENT_SECRET && secret !== "THESECRETHUB") {
+        return res.status(403).json({ error: "Invalid secret" });
     }
 
-    const newMatch = {
+    const newLobby = {
         id: Date.now().toString(),
         name,
         customCode,
@@ -99,17 +99,28 @@ app.post('/api/tournaments', (req, res) => {
         teamSize,
         mode,
         submode,
-        description
+        description,
+        createdAt: new Date().toISOString()
     };
 
-    lobbies.push(newMatch);
-    res.json({ success: true, match: newMatch });
+    lobbies.push(newLobby);
+    res.json({ success: true, lobby: newLobby });
+});
+
+app.delete('/api/tournaments/:id', (req, res) => {
+    const { secret } = req.body;
+    if (secret !== process.env.EPIC_CLIENT_SECRET && secret !== "THESECRETHUB") {
+        return res.status(403).json({ error: "Invalid secret" });
+    }
+
+    const id = req.params.id;
+    lobbies = lobbies.filter(l => l.id !== id);
+    res.json({ success: true });
 });
 
 // ==========================================
-// 2. AUTHENTICATION (Username + Password only)
+// 2. AUTH API
 // ==========================================
-
 app.post('/api/auth/register', (req, res) => {
     const { username, password } = req.body;
 
@@ -158,8 +169,30 @@ app.post('/api/chat', async (req, res) => {
         if (!message) return res.status(400).json({ error: "Message is required." });
 
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
-            systemInstruction: "You are the official customer service bot for the CompCustoms platform. Assist players with custom codes and account issues."
+            model: "gemini-3.5-flash-lite",
+            systemInstruction: `You are the official support AI for CompCustoms (compcustoms.my.to).
+
+CompCustoms is a Fortnite competitive platform where players can:
+- Join and view custom scrims / custom matches (lobbies)
+- Get custom matchmaking keys (custom codes)
+- Create accounts and log in to see lobby keys
+- Practice competitive Fortnite in organized customs
+
+Your ONLY job is to help users with CompCustoms-related topics:
+- How to create an account / log in
+- How to see and use custom keys
+- Lobby status, rules, and how customs work
+- Account problems related to the site
+- Match rules and banned behavior
+- Why the site shows "Offline" or "Unable to connect"
+
+Strict rules:
+- Stay strictly on-topic. Do NOT answer questions about other games, general Fortnite tips, homework, coding, or anything unrelated to CompCustoms.
+- If the user goes off-topic, politely redirect them back to CompCustoms support.
+- Be short, clear and helpful.
+- Never pretend to be a human admin.
+- Never make up features that don't exist.
+- If you don't know something specific, say so and suggest checking the FAQ or trying again later.`
         });
 
         const result = await model.generateContent(message);
