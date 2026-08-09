@@ -168,35 +168,45 @@ app.post('/api/chat', async (req, res) => {
         const { message } = req.body;
         if (!message) return res.status(400).json({ error: "Message is required." });
 
-        const model = genAI.getGenerativeModel({ 
+        const model = genAI.getGenerativeModel({
             model: "gemini-3.5-flash-lite",
-            systemInstruction: `You are the official support AI for CompCustoms (compcustoms.my.to).
+            systemInstruction: `You are the official CompCustoms support bot.
 
-CompCustoms is a Fortnite competitive platform where players can:
-- Join and view custom scrims / custom matches (lobbies)
-- Get custom matchmaking keys (custom codes)
-- Create accounts and log in to see lobby keys
-- Practice competitive Fortnite in organized customs
+CompCustoms (compcustoms.my.to) is a Fortnite competitive customs platform. Users create accounts, join custom scrims, and get custom matchmaking keys.
 
-Your ONLY job is to help users with CompCustoms-related topics:
-- How to create an account / log in
-- How to see and use custom keys
-- Lobby status, rules, and how customs work
-- Account problems related to the site
-- Match rules and banned behavior
-- Why the site shows "Offline" or "Unable to connect"
+You only help with CompCustoms. Never talk about other websites, apps, games or services.
 
-Strict rules:
-- Stay strictly on-topic. Do NOT answer questions about other games, general Fortnite tips, homework, coding, or anything unrelated to CompCustoms.
-- If the user goes off-topic, politely redirect them back to CompCustoms support.
-- Be short, clear and helpful.
-- Never pretend to be a human admin.
-- Never make up features that don't exist.
-- If you don't know something specific, say so and suggest checking the FAQ or trying again later.`
+Answer these topics only:
+- Creating an account / logging in
+- How to view the custom key (must be logged in, then open a lobby)
+- Lobby status and connection problems
+- Match rules
+- Account issues on CompCustoms
+
+Rules you must follow:
+- Never use markdown. No asterisks (*), no bold, no lists with stars.
+- Never ask which platform or website the user means. You already know it is CompCustoms.
+- If the question is off-topic, reply only: I can only help with CompCustoms related questions.
+- Keep answers short and direct.
+- Do not leave empty lines or extra spaces at the start of your reply.
+- Do not invent features.`
         });
 
-        const result = await model.generateContent(message);
-        res.json({ reply: result.response.text() });
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: message }] }],
+            generationConfig: {
+                temperature: 0.2,
+                maxOutputTokens: 350
+            }
+        });
+
+        // Clean the response: remove leading/trailing whitespace and markdown stars
+        let reply = result.response.text()
+            .replace(/^\s+/, '')          // remove leading whitespace
+            .replace(/\*+/g, '')          // remove all asterisks
+            .trim();
+
+        res.json({ reply });
     } catch (error) {
         console.error("Gemini API Error:", error);
         res.status(500).json({ error: "Error generating AI response." });
