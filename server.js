@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const nodemailer = require('nodemailer');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
@@ -46,7 +45,6 @@ const saveUsers = (users) => {
 };
 
 let usersDatabase = loadUsers();
-const pendingVerification = new Map();
 
 // ==========================================
 // 0. IP BANNING MIDDLEWARE (BANNED_IPS.json)
@@ -109,102 +107,46 @@ app.post('/api/tournaments', (req, res) => {
 });
 
 // ==========================================
-// 2. AUTHENTICATION & EMAIL VERIFICATION
+// 2. AUTHENTICATION (Username + Password only)
 // ==========================================
 
-// Support both EMAIL_USER/EMAIL_PASS and GMAIL_USER/GMAIL_PASS
-const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER;
-const emailPass = process.env.EMAIL_PASS || process.env.GMAIL_PASS;
+app.post('/api/auth/register', (req, res) => {
+    const { username, password } = req.body;
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: emailUser,
-        pass: emailPass
-    }
-});
-
-// Check email connectivity on startup
-transporter.verify((error, success) => {
-    if (error) {
-        console.warn("⚠️  Email service not configured.");
-        console.warn("   Set EMAIL_USER and EMAIL_PASS (or GMAIL_USER and GMAIL_PASS)");
-        console.warn("   Email verification will not work without these.");
-    } else {
-        console.log("✓ Email service ready");
-    }
-});
-
-app.post('/api/auth/register', async (req, res) => {
-    const { email, epicUsername, password } = req.body;
-
-    if (!email || !epicUsername || !password) {
-        return res.status(400).json({ success: false, message: "All fields are required!" });
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: "Username and password are required!" });
     }
 
-    const existing = usersDatabase.find(u => u.email === email || u.epicUsername === epicUsername);
+    const existing = usersDatabase.find(u => u.username === username);
     if (existing) {
-        return res.status(400).json({ success: false, message: "Email or Epic username already in use." });
-    }
-
-    // Check if email is configured
-    if (!emailUser || !emailPass) {
-        return res.status(500).json({ success: false, message: "Email service not configured on server. Contact admin." });
-    }
-
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    pendingVerification.set(email, { email, epicUsername, password, verificationCode });
-
-    try {
-        await transporter.sendMail({
-            from: '"CompCustoms" <no-reply@compcustoms.my.to>',
-            to: email,
-            subject: 'Your CompCustoms Verification Code',
-            text: `Hi ${epicUsername}!\n\nYour verification code for CompCustoms account creation is: ${verificationCode}\n\nBest regards,\nCompCustoms Team`,
-            html: `<h2>Welcome to CompCustoms!</h2><p>Your verification code is: <strong>${verificationCode}</strong></p>`
-        });
-        res.json({ success: true, requireVerification: true, message: "Verification code sent to your email!" });
-    } catch (error) {
-        console.error("Email sending failed:", error.message);
-        res.status(500).json({ success: false, message: `Email sending failed: ${error.message}` });
-    }
-});
-
-app.post('/api/auth/verify', async (req, res) => {
-    const { email, code } = req.body;
-
-    const pending = pendingVerification.get(email);
-    if (!pending || pending.verificationCode !== code) {
-        return res.status(400).json({ success: false, message: "Invalid verification code." });
+        return res.status(400).json({ success: false, message: "Username already in use." });
     }
 
     const newUser = {
-        email: pending.email,
-        epicUsername: pending.epicUsername,
-        password: pending.password,
+        username,
+        password,
         createdAt: new Date().toISOString()
     };
 
     usersDatabase.push(newUser);
     saveUsers(usersDatabase);
-    pendingVerification.delete(email);
 
-    res.json({ success: true, username: pending.epicUsername, message: "Account verified and created successfully!" });
+    res.json({ success: true, username, message: "Account created successfully!" });
 });
 
 app.post('/api/auth/login', (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ success: false, message: "Email and password are required." });
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: "Username and password are required." });
     }
 
-    const user = usersDatabase.find(u => u.email === email && u.password === password);
+    const user = usersDatabase.find(u => u.username === username && u.password === password);
     if (!user) {
-        return res.status(400).json({ success: false, message: "Invalid email or password." });
+        return res.status(400).json({ success: false, message: "Invalid username or password." });
     }
 
-    res.json({ success: true, username: user.epicUsername, message: "Logged in successfully!" });
+    res.json({ success: true, username: user.username, message: "Logged in successfully!" });
 });
 
 // ==========================================
@@ -235,8 +177,7 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(), 
-        usersCount: usersDatabase.length,
-        emailConfigured: !!(emailUser && emailPass)
+        usersCount: usersDatabase.length
     });
 });
 
