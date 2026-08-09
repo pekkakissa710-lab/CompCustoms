@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - COMPCUSTOMS</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            purple: '#7928CA',
+                            darkBg: '#050B14',
+                            cardBg: '#0D1527',
+                            border: '#1E293B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-b from-[#050B14] via-[#0A1128] to-black text-slate-100 min-h-screen font-sans antialiased flex flex-col items-center justify-center p-4 selection:bg-red-600 selection:text-white">
+
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="flex items-center justify-center gap-3 mb-8">
+            <img src="logo.png" alt="Logo" class="w-10 h-10 rounded-xl">
+            <span class="text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-blue-400">
+                COMP<span class="text-blue-500">CUSTOMS</span>
+            </span>
+        </div>
+
+        <!-- Ban Card -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative z-10 space-y-6">
+                <div class="w-16 h-16 mx-auto bg-red-600/15 border border-red-500/30 rounded-2xl flex items-center justify-center text-red-400 shadow-inner">
+                    <i data-lucide="shield-off" class="w-8 h-8"></i>
+                </div>
+
+                <div class="space-y-2">
+                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Access Denied</h1>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        You have been banned from CompCustoms.
+                    </p>
+                </div>
+
+                <div class="px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl">
+                    <p class="text-[11px] font-mono text-slate-500 uppercase tracking-wider mb-1">Error Code</p>
+                    <p class="text-sm font-bold text-red-400 font-mono tracking-wide">403_IP_BANNED</p>
+                </div>
+
+                <div class="text-left space-y-3 bg-slate-950/50 border border-slate-800/60 rounded-xl p-4">
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Your IP address has been permanently restricted from accessing this platform due to a violation of our rules.
+                    </p>
+                    <ul class="text-xs text-slate-500 space-y-1.5 list-disc list-inside">
+                        <li>Sharing custom keys with unauthorized players</li>
+                        <li>Cheating, exploiting or toxic behavior</li>
+                        <li>Attempting to bypass previous bans</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-[11px] text-slate-600 mt-6">
+            &copy; 2026 CompCustoms · Not affiliated with Epic Games
+        </p>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
